@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>V8 Cloud OS | الإصدار 8.2</title>
+    <title>V8 Cloud OS | الإصدار 8.3 - Unified Kernel</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); overflow: hidden; height: 100vh; width: 100vw; }
@@ -12,47 +12,40 @@
         body.light-mode .desktop-icon { background: rgba(255,255,255,0.7); color: #333; }
         body.light-mode .desktop-icon .label { color: #333; }
         body.light-mode .window { background: rgba(255,255,255,0.98); }
+        
         .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 55px; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; z-index: 1000; }
         .taskbar-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .start-menu, .theme-toggle { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; }
+        .start-menu, .theme-toggle, .nav-btn { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .start-menu:hover, .theme-toggle:hover, .nav-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.02); }
         .taskbar-right { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+        
         .desktop-icons { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 12px; z-index: 10; }
         .desktop-icon { width: 75px; text-align: center; cursor: pointer; padding: 8px; border-radius: 16px; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); transition: all 0.2s; }
         .desktop-icon:active { transform: scale(0.95); }
         .desktop-icon .icon { font-size: 38px; }
         .desktop-icon .label { color: white; font-size: 10px; margin-top: 4px; }
+        
         .window { position: absolute; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 450px; min-height: 400px; max-height: 80vh; z-index: 100; display: flex; flex-direction: column; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
-        .window-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px; border-radius: 20px 20px 0 0; color: white; cursor: move; display: flex; justify-content: space-between; touch-action: none; }
-        .window-content { padding: 15px; flex: 1; overflow: auto; min-height: 250px; }
+        .window-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px; border-radius: 20px 20px 0 0; color: white; cursor: move; display: flex; justify-content: space-between; align-items: center; touch-action: none; }
+        .window-title { display: flex; gap: 8px; align-items: center; }
+        .window-buttons { display: flex; gap: 8px; align-items: center; }
         .window-close { cursor: pointer; background: rgba(255,255,255,0.2); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
-        .window-close:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+        .window-close:active { transform: scale(0.9); }
+        .window-content { padding: 15px; flex: 1; overflow: auto; min-height: 250px; }
+        
         .notification { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 40px; z-index: 3000; font-size: 13px; text-align: center; animation: slideDown 0.3s ease; max-width: 90%; }
         @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; margin-top: 10px; }
-        .calendar-day { padding: 8px; border-radius: 10px; cursor: pointer; font-size: 14px; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
-        .task-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #eee; }
-        .task-item.completed span { text-decoration: line-through; color: #999; }
-        .calc-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
-        .calc-btn { padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 12px; background: #f5f5f5; cursor: pointer; text-align: center; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-        .gallery-item { background: #f0f0f0; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; }
-        canvas { border: 1px solid #ddd; border-radius: 12px; cursor: crosshair; touch-action: none; width: 100%; height: auto; background: white; }
-        .currency-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .currency-row select, .currency-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 12px; }
+        
         @media (max-width: 768px) {
             .desktop-icon { width: 65px; }
             .desktop-icon .icon { font-size: 32px; }
             .window { width: 95%; max-width: 95%; left: 2.5% !important; right: 2.5% !important; }
-            .taskbar-left .start-menu, .taskbar-left .theme-toggle { padding: 4px 10px; font-size: 12px; }
-            .taskbar-right { gap: 6px; font-size: 10px; }
-            .calendar-day { padding: 5px; font-size: 12px; }
-            .calc-btn { padding: 10px; font-size: 16px; }
+            .taskbar-left .start-menu, .taskbar-left .theme-toggle, .nav-btn { padding: 4px 8px; font-size: 11px; }
         }
         @media (max-width: 480px) {
             .desktop-icon { width: 55px; }
             .desktop-icon .icon { font-size: 28px; }
-            .taskbar { height: 50px; padding: 0 8px; }
+            .taskbar { height: 50px; }
         }
     </style>
 </head>
@@ -60,8 +53,11 @@
 
 <div class="taskbar">
     <div class="taskbar-left">
-        <div class="start-menu" onclick="showNotification('☁️ V8 Cloud OS v8.2')">☁️ V8</div>
-        <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+        <div class="start-menu" id="startMenu">☁️ V8.3</div>
+        <div class="nav-btn" id="navBack" title="رجوع داخلي">◀</div>
+        <div class="nav-btn" id="navForward" title="تقدم داخلي">▶</div>
+        <div class="nav-btn" id="navRefresh" title="تحديث">🔄</div>
+        <div class="theme-toggle" id="themeToggle">🌙</div>
     </div>
     <div class="taskbar-right">
         <div id="batteryStatus">🔋 --%</div>
@@ -74,386 +70,766 @@
 <div id="windowsContainer"></div>
 
 <script>
-    // الإشعارات
-    function showNotification(msg) {
-        let n = document.createElement('div');
-        n.className = 'notification';
-        n.textContent = msg;
-        document.body.appendChild(n);
-        setTimeout(() => n.remove(), 2500);
-    }
+// ============================================
+// V8.3 UNIFIED KERNEL - SINGLE SOURCE OF TRUTH
+// ============================================
 
-    // الساعة
-    function updateClock() {
-        let now = new Date();
-        document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+// ---------- 1. Event Bus ----------
+class V8EventBus {
+    constructor() {
+        this.events = new Map();
     }
-    updateClock();
-    setInterval(updateClock, 1000);
+    
+    on(event, handler) {
+        if (!this.events.has(event)) this.events.set(event, []);
+        this.events.get(event).push(handler);
+        return () => this.off(event, handler);
+    }
+    
+    off(event, handler) {
+        if (!this.events.has(event)) return;
+        const handlers = this.events.get(event);
+        const index = handlers.indexOf(handler);
+        if (index !== -1) handlers.splice(index, 1);
+    }
+    
+    emit(event, data) {
+        if (!this.events.has(event)) return;
+        this.events.get(event).forEach(handler => handler(data));
+    }
+    
+    once(event, handler) {
+        const wrapper = (data) => {
+            handler(data);
+            this.off(event, wrapper);
+        };
+        this.on(event, wrapper);
+    }
+}
 
-    // البطارية
-    if ('getBattery' in navigator) {
-        navigator.getBattery().then(battery => {
-            function updateBattery() {
-                let level = Math.round(battery.level * 100);
-                document.getElementById('batteryStatus').innerHTML = battery.charging ? `⚡ ${level}%` : `🔋 ${level}%`;
-            }
-            updateBattery();
-            battery.addEventListener('levelchange', updateBattery);
-            battery.addEventListener('chargingchange', updateBattery);
+// ---------- 2. Storage Manager (IndexedDB) ----------
+class V8Storage {
+    constructor() {
+        this.db = null;
+        this.ready = false;
+        this.queue = [];
+    }
+    
+    async init() {
+        if (this.ready) return true;
+        
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('v8_unified_db', 2);
+            
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                this.db = request.result;
+                this.ready = true;
+                this.processQueue();
+                resolve(true);
+            };
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('app_data')) {
+                    db.createObjectStore('app_data', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('images')) {
+                    db.createObjectStore('images', { keyPath: 'id', autoIncrement: true });
+                }
+                if (!db.objectStoreNames.contains('settings')) {
+                    db.createObjectStore('settings', { keyPath: 'key' });
+                }
+                console.log('✅ IndexedDB stores created');
+            };
         });
     }
-
-    // الشبكة
-    function updateNetwork() {
-        document.getElementById('networkStatus').innerHTML = navigator.onLine ? '📶 Online' : '📡 Offline';
+    
+    processQueue() {
+        this.queue.forEach(task => task());
+        this.queue = [];
     }
-    updateNetwork();
-    window.addEventListener('online', updateNetwork);
-    window.addEventListener('offline', updateNetwork);
-
-    // تبديل الوضع
-    function toggleTheme() {
-        document.body.classList.toggle('light-mode');
-        let btn = document.querySelector('.theme-toggle');
-        if (document.body.classList.contains('light-mode')) {
-            btn.innerHTML = '☀️';
-            showNotification('✅ وضع النهار');
-        } else {
-            btn.innerHTML = '🌙';
-            showNotification('✅ وضع الليل');
+    
+    async get(store, id) {
+        if (!this.ready) {
+            await this.init();
         }
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction([store], 'readonly');
+            const req = tx.objectStore(store).get(id);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
     }
-
-    // التطبيقات
-    let apps = [
-        { name: 'notes', display: '📝 مفكرة', icon: '📝' },
-        { name: 'calculator', display: '🔢 حاسبة', icon: '🔢' },
-        { name: 'scientific', display: '📊 حاسبة علمية', icon: '📊' },
-        { name: 'files', display: '📁 ملفات', icon: '📁' },
-        { name: 'calendar', display: '📅 تقويم', icon: '📅' },
-        { name: 'tasks', display: '✅ مهام', icon: '✅' },
-        { name: 'music', display: '🎵 مشغل موسيقى', icon: '🎵' },
-        { name: 'gallery', display: '🖼️ معرض صور', icon: '🖼️' },
-        { name: 'draw', display: '🎨 رسم', icon: '🎨' },
-        { name: 'alarm', display: '⏰ منبه', icon: '⏰' },
-        { name: 'currency', display: '🧮 تحويل عملات', icon: '🧮' },
-        { name: 'browser', display: '🌐 متصفح', icon: '🌐' },
-        { name: 'settings', display: '⚙️ إعدادات', icon: '⚙️' }
-    ];
-
-    function loadDesktopIcons() {
-        let container = document.getElementById('desktopIcons');
-        container.innerHTML = apps.map(app => `
-            <div class="desktop-icon" onclick="openApp('${app.name}')">
-                <div class="icon">${app.icon}</div>
-                <div class="label">${app.display}</div>
-            </div>
-        `).join('');
+    
+    async set(store, data) {
+        if (!this.ready) {
+            await this.init();
+        }
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction([store], 'readwrite');
+            const req = tx.objectStore(store).put(data);
+            req.onsuccess = () => resolve(data);
+            req.onerror = () => reject(req.error);
+        });
     }
+    
+    async getAll(store) {
+        if (!this.ready) await this.init();
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction([store], 'readonly');
+            const req = tx.objectStore(store).getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+        });
+    }
+    
+    async delete(store, id) {
+        if (!this.ready) await this.init();
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction([store], 'readwrite');
+            const req = tx.objectStore(store).delete(id);
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
+        });
+    }
+}
 
-    let windows = [];
-    let nextZ = 100;
+// ---------- 3. App Registry (Single Source of Truth) ----------
+class V8AppRegistry {
+    constructor(eventBus) {
+        this.eventBus = eventBus;
+        this.apps = new Map();
+        this.instances = new Map();
+    }
+    
+    register(appId, config) {
+        if (this.apps.has(appId)) {
+            console.warn(`App ${appId} already registered`);
+            return false;
+        }
+        
+        this.apps.set(appId, {
+            id: appId,
+            name: config.name,
+            icon: config.icon,
+            component: config.component,
+            initialState: config.initialState || {},
+            permissions: config.permissions || ['read']
+        });
+        
+        this.eventBus.emit('app:registered', { appId, name: config.name });
+        console.log(`✅ App registered: ${config.name}`);
+        return true;
+    }
+    
+    getApp(appId) {
+        return this.apps.get(appId);
+    }
+    
+    getAllApps() {
+        return Array.from(this.apps.values());
+    }
+    
+    createInstance(appId, windowId, props = {}) {
+        const app = this.apps.get(appId);
+        if (!app || !app.component) {
+            console.error(`App ${appId} has no component`);
+            return null;
+        }
+        
+        const instance = new app.component(windowId, props);
+        instance.appId = appId;
+        instance.windowId = windowId;
+        this.instances.set(`${appId}_${windowId}`, instance);
+        return instance;
+    }
+    
+    getInstance(appId, windowId) {
+        return this.instances.get(`${appId}_${windowId}`);
+    }
+    
+    destroyInstance(appId, windowId) {
+        const instance = this.instances.get(`${appId}_${windowId}`);
+        if (instance && instance.destroy) {
+            instance.destroy();
+        }
+        this.instances.delete(`${appId}_${windowId}`);
+    }
+}
 
-    function openApp(appName) {
-        let winId = Date.now();
-        let winHtml = `
-            <div id="win-${winId}" class="window" style="left:${30 + windows.length * 20}px; top:${50 + windows.length * 15}px; z-index:${nextZ++}">
-                <div class="window-header" onmousedown="startDrag(event, 'win-${winId}')" ontouchstart="startDrag(event, 'win-${winId}')">
-                    <span>${apps.find(a=>a.name===appName)?.display || appName}</span>
-                    <div class="window-close" onclick="closeWindow('win-${winId}')">✕</div>
+// ---------- 4. Window Manager (Kernel Controlled) ----------
+class V8WindowManager {
+    constructor(eventBus, appRegistry) {
+        this.eventBus = eventBus;
+        this.appRegistry = appRegistry;
+        this.windows = new Map();
+        this.nextZIndex = 100;
+        this.windowCounter = 0;
+        this.activeDrag = null;
+    }
+    
+    createWindow(appId, options = {}) {
+        const app = this.appRegistry.getApp(appId);
+        if (!app) {
+            console.error(`App ${appId} not found`);
+            return null;
+        }
+        
+        const windowId = `win_${appId}_${++this.windowCounter}_${Date.now()}`;
+        const windowConfig = {
+            id: windowId,
+            appId: appId,
+            title: options.title || app.name,
+            x: options.x || 50 + (this.windows.size * 20),
+            y: options.y || 80 + (this.windows.size * 15),
+            width: options.width || 420,
+            height: options.height || 450,
+            zIndex: this.nextZIndex++,
+            isMinimized: false,
+            element: null,
+            contentElement: null,
+            instance: null
+        };
+        
+        // إنشاء مثيل التطبيق
+        const instance = this.appRegistry.createInstance(appId, windowId, options.props || {});
+        if (instance) {
+            windowConfig.instance = instance;
+        }
+        
+        this.windows.set(windowId, windowConfig);
+        this.renderWindow(windowConfig);
+        this.eventBus.emit('window:created', { windowId, appId });
+        
+        return windowId;
+    }
+    
+    renderWindow(config) {
+        const existing = document.getElementById(config.id);
+        if (existing) existing.remove();
+        
+        const winHtml = `
+            <div id="${config.id}" class="window" style="left:${config.x}px; top:${config.y}px; width:${config.width}px; min-height:${config.height}px; z-index:${config.zIndex}">
+                <div class="window-header" onmousedown="v8WindowManager.startDrag(event, '${config.id}')" ontouchstart="v8WindowManager.startDrag(event, '${config.id}')">
+                    <div class="window-title">
+                        <span>${config.title}</span>
+                    </div>
+                    <div class="window-buttons">
+                        <div class="window-close" onclick="v8WindowManager.closeWindow('${config.id}')">✕</div>
+                    </div>
                 </div>
-                <div class="window-content" id="content-${winId}">
+                <div class="window-content" id="content-${config.id}">
                     <div style="text-align:center; padding:20px;">⏳ جاري التحميل...</div>
                 </div>
             </div>
         `;
-        document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
-        let content = document.getElementById(`content-${winId}`);
-        renderApp(content, appName, winId);
-        windows.push({ id: `win-${winId}`, element: document.getElementById(`win-${winId}`) });
-    }
-
-    // إغلاق النافذة - تم إصلاح المشكلة
-    function closeWindow(winId) {
-        let win = windows.find(w => w.id === winId);
-        if(win) { 
-            win.element.remove(); 
-            windows = windows.filter(w => w.id !== winId);
-            showNotification('✅ تم إغلاق النافذة');
-        } else {
-            // محاولة إغلاق بالطريقة المباشرة
-            let element = document.getElementById(winId);
-            if(element) {
-                element.remove();
-                windows = windows.filter(w => w.id !== winId);
-                showNotification('✅ تم إغلاق النافذة');
-            }
-        }
-    }
-
-    // حاسبة عادية
-    let calcValue = '0', calcOperator = null, waitingForOperand = false, calcPreviousValue = 0;
-    function updateCalcDisplay() { let d = document.getElementById('calc-display'); if(d) d.value = calcValue; }
-    function inputDigit(d) {
-        if (waitingForOperand) { calcValue = d; waitingForOperand = false; }
-        else { calcValue = calcValue === '0' ? d : calcValue + d; }
-        updateCalcDisplay();
-    }
-    function inputDecimal() {
-        if (waitingForOperand) { calcValue = '0.'; waitingForOperand = false; }
-        else if (!calcValue.includes('.')) calcValue += '.';
-        updateCalcDisplay();
-    }
-    function performOperation(next) {
-        let input = parseFloat(calcValue);
-        if (calcOperator && !waitingForOperand) {
-            let result = 0;
-            switch (calcOperator) {
-                case '+': result = calcPreviousValue + input; break;
-                case '-': result = calcPreviousValue - input; break;
-                case '*': result = calcPreviousValue * input; break;
-                case '/': result = calcPreviousValue / input; break;
-                default: result = input;
-            }
-            calcValue = String(result);
-            updateCalcDisplay();
-        }
-        calcPreviousValue = parseFloat(calcValue);
-        calcOperator = next;
-        waitingForOperand = true;
-    }
-    function clearCalc() { calcValue = '0'; calcOperator = null; waitingForOperand = false; updateCalcDisplay(); }
-
-    // حاسبة علمية
-    let sciValue = '0';
-    function updateSciDisplay() { let d = document.getElementById('sci-display'); if(d) d.value = sciValue; }
-    function sciInput(d) { sciValue = sciValue === '0' ? d : sciValue + d; updateSciDisplay(); }
-    function sciClear() { sciValue = '0'; updateSciDisplay(); }
-    function sciFunction(fn) {
-        let num = parseFloat(sciValue);
-        if (fn === 'sin') sciValue = Math.sin(num).toString();
-        else if (fn === 'cos') sciValue = Math.cos(num).toString();
-        else if (fn === 'tan') sciValue = Math.tan(num).toString();
-        else if (fn === 'sqrt') sciValue = Math.sqrt(num).toString();
-        else if (fn === 'log') sciValue = Math.log10(num).toString();
-        else if (fn === 'ln') sciValue = Math.log(num).toString();
-        else if (fn === 'pow2') sciValue = Math.pow(num, 2).toString();
-        updateSciDisplay();
-    }
-
-    // عملات
-    const rates = { USD: 1, EUR: 0.92, GBP: 0.78, SAR: 3.75, EGP: 48.5, AED: 3.67, JOD: 0.71, KWD: 0.31 };
-
-    function renderApp(container, appName, winId) {
-        if (appName === 'notes') {
-            let saved = localStorage.getItem('notes_content') || '';
-            container.innerHTML = `<textarea id="notes-area-${winId}" style="width:100%; height:200px; padding:12px; border:1px solid #ddd; border-radius:16px;">${saved}</textarea>
-                <button onclick="saveNotes_${winId}()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>`;
-            window[`saveNotes_${winId}`] = () => {
-                let content = document.getElementById(`notes-area-${winId}`).value;
-                localStorage.setItem('notes_content', content);
-                localStorage.setItem('notes_last_saved', new Date().toLocaleString('ar-EG'));
-                showNotification('✅ تم حفظ الملاحظات');
-            };
-        }
-        else if (appName === 'calculator') {
-            container.innerHTML = `<input id="calc-display" readonly value="0" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px;">
-                <div class="calc-buttons">
-                    ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(b => `<div class="calc-btn" onclick="${b === '/' ? 'performOperation' : b === '*' ? 'performOperation' : b === '-' ? 'performOperation' : b === '+' ? 'performOperation' : b === '=' ? 'performOperation' : b === '.' ? 'inputDecimal' : 'inputDigit'}('${b}')">${b}</div>`).join('')}
-                    <div class="calc-btn clear" onclick="clearCalc()">C</div>
-                </div>`;
-            updateCalcDisplay();
-        }
-        else if (appName === 'scientific') {
-            container.innerHTML = `<input id="sci-display" readonly value="0" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px; margin-bottom:10px;">
-                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
-                    <div class="calc-btn" onclick="sciFunction('sin')">sin</div><div class="calc-btn" onclick="sciFunction('cos')">cos</div><div class="calc-btn" onclick="sciFunction('tan')">tan</div>
-                    <div class="calc-btn" onclick="sciFunction('sqrt')">√</div><div class="calc-btn" onclick="sciFunction('pow2')">x²</div><div class="calc-btn" onclick="sciFunction('log')">log</div>
-                    <div class="calc-btn" onclick="sciFunction('ln')">ln</div><div class="calc-btn" onclick="sciInput('7')">7</div><div class="calc-btn" onclick="sciInput('8')">8</div>
-                    <div class="calc-btn" onclick="sciInput('9')">9</div><div class="calc-btn" onclick="sciInput('4')">4</div><div class="calc-btn" onclick="sciInput('5')">5</div>
-                    <div class="calc-btn" onclick="sciInput('6')">6</div><div class="calc-btn" onclick="sciInput('1')">1</div><div class="calc-btn" onclick="sciInput('2')">2</div>
-                    <div class="calc-btn" onclick="sciInput('3')">3</div><div class="calc-btn" onclick="sciInput('0')">0</div><div class="calc-btn" onclick="sciInput('.')">.</div>
-                    <div class="calc-btn clear" onclick="sciClear()">C</div>
-                </div>`;
-        }
-        else if (appName === 'files') {
-            let files = JSON.parse(localStorage.getItem('user_files') || '[]');
-            container.innerHTML = `<button onclick="addFile_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px;">➕ ملف جديد</button>
-                <div style="margin-top:10px;">${files.map((f,i)=>`<div style="padding:8px; border-bottom:1px solid #eee;">📄 ${f.name} <button onclick="deleteFile_${winId}(${i})" style="float:left; background:#dc3545; color:white; border:none; padding:2px 8px; border-radius:8px;">🗑️</button></div>`).join('')}</div>`;
-            window[`addFile_${winId}`] = () => {
-                let name = prompt('اسم الملف:');
-                if(name) { let f=JSON.parse(localStorage.getItem('user_files')||'[]'); f.push({name}); localStorage.setItem('user_files',JSON.stringify(f)); openApp('files'); showNotification('✅ تم إنشاء الملف'); }
-            };
-            window[`deleteFile_${winId}`] = (i) => {
-                let f=JSON.parse(localStorage.getItem('user_files')||'[]'); f.splice(i,1); localStorage.setItem('user_files',JSON.stringify(f)); openApp('files'); showNotification('🗑️ تم الحذف');
-            };
-        }
-        else if (appName === 'calendar') {
-            let today = new Date();
-            let days = [];
-            for(let i=1; i<=31; i++) days.push(i);
-            container.innerHTML = `<div class="calendar-header"><h3>${today.toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</h3></div>
-                <div class="calendar-grid">${['ح','ن','ث','ر','خ','ج','س'].map(d=>`<div style="font-weight:bold;">${d}</div>`).join('')}${days.map(d=>`<div class="calendar-day">${d}</div>`).join('')}</div>`;
-        }
-        else if (appName === 'tasks') {
-            let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            container.innerHTML = `<div style="display:flex; gap:10px;"><input id="new-task-${winId}" placeholder="مهمة جديدة..." style="flex:1; padding:10px; border:1px solid #ddd; border-radius:12px;"><button onclick="addTask_${winId}()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:12px;">➕</button></div>
-                <div id="tasks-list-${winId}">${tasks.map((t,i)=>`<div class="task-item ${t.completed?'completed':''}"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask_${winId}(${i})"><span>${t.text}</span><button onclick="deleteTask_${winId}(${i})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:8px;">🗑️</button></div>`).join('')}</div>`;
-            window[`addTask_${winId}`] = () => {
-                let input = document.getElementById(`new-task-${winId}`);
-                if(input.value.trim()) { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.push({text:input.value,completed:false}); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); showNotification('✅ تم إضافة المهمة'); }
-            };
-            window[`toggleTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t[i].completed=!t[i].completed; localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); };
-            window[`deleteTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.splice(i,1); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); showNotification('🗑️ تم حذف المهمة'); };
-        }
-        else if (appName === 'music') {
-            container.innerHTML = `<div style="text-align:center;"><div style="font-size:48px;">🎵</div><audio id="audio-${winId}" controls style="width:100%; margin:10px 0;"></audio>
-                <input type="file" accept="audio/*" onchange="loadMusic_${winId}(this)"><div id="now-playing-${winId}" style="margin-top:10px; color:#999;"></div></div>`;
-            window[`loadMusic_${winId}`] = (input) => {
-                let file = input.files[0];
-                if(file) { let url = URL.createObjectURL(file); document.getElementById(`audio-${winId}`).src = url; document.getElementById(`now-playing-${winId}`).innerHTML = `🎶 الآن: ${file.name}`; showNotification('✅ تم تحميل الأغنية'); }
-            };
-        }
-        else if (appName === 'gallery') {
-            let images = JSON.parse(localStorage.getItem('gallery') || '[]');
-            container.innerHTML = `<button onclick="addImage_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px;">➕ إضافة صورة</button>
-                <div class="gallery-grid" id="gallery-${winId}">${images.map((img,i)=>`<div class="gallery-item" onclick="viewImage_${winId}(${i})"><div style="font-size:40px;">🖼️</div><div>صورة ${i+1}</div></div>`).join('')}</div>`;
-            window[`addImage_${winId}`] = () => {
-                let input = document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange=(e)=>{let file=e.target.files[0]; if(file){let reader=new FileReader(); reader.onload=(ev)=>{let imgs=JSON.parse(localStorage.getItem('gallery')||'[]'); imgs.push(ev.target.result); localStorage.setItem('gallery',JSON.stringify(imgs)); openApp('gallery'); showNotification('✅ تم إضافة الصورة');}; reader.readAsDataURL(file);}}; input.click();
-            };
-            window[`viewImage_${winId}`] = (i) => { let imgs=JSON.parse(localStorage.getItem('gallery')||'[]'); if(imgs[i]) window.open(imgs[i]); };
-        }
-        else if (appName === 'draw') {
-            container.innerHTML = `<canvas id="canvas-${winId}" width="400" height="300" style="width:100%; height:auto; border:1px solid #ddd; border-radius:12px;"></canvas>
-                <div style="display:flex; gap:10px; margin-top:10px;"><button onclick="clearCanvas_${winId}()" style="flex:1; padding:8px; background:#dc3545; color:white; border:none; border-radius:12px;">🗑️ مسح</button>
-                <button onclick="saveDrawing_${winId}()" style="flex:1; padding:8px; background:#28a745; color:white; border:none; border-radius:12px;">💾 حفظ</button></div>`;
-            setTimeout(() => {
-                let canvas = document.getElementById(`canvas-${winId}`);
-                let ctx = canvas.getContext('2d');
-                canvas.width = 400; canvas.height = 300;
-                ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
-                let drawing = false;
-                let start = (e) => { 
-                    drawing = true; 
-                    let rect = canvas.getBoundingClientRect();
-                    let scaleX = canvas.width / rect.width;
-                    let scaleY = canvas.height / rect.height;
-                    let x = ((e.clientX||e.touches[0].clientX) - rect.left) * scaleX;
-                    let y = ((e.clientY||e.touches[0].clientY) - rect.top) * scaleY;
-                    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y); ctx.stroke(); 
-                };
-                let draw = (e) => { 
-                    if(!drawing) return; 
-                    let rect = canvas.getBoundingClientRect();
-                    let scaleX = canvas.width / rect.width;
-                    let scaleY = canvas.height / rect.height;
-                    let x = ((e.clientX||e.touches[0].clientX) - rect.left) * scaleX;
-                    let y = ((e.clientY||e.touches[0].clientY) - rect.top) * scaleY;
-                    ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); 
-                };
-                let stop = () => { drawing = false; ctx.beginPath(); };
-                canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop);
-                canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop);
-                window[`clearCanvas_${winId}`] = () => { ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height); };
-                window[`saveDrawing_${winId}`] = () => { let link = document.createElement('a'); link.download = `drawing_${Date.now()}.png`; link.href = canvas.toDataURL(); link.click(); showNotification('✅ تم حفظ الرسم'); };
-            }, 100);
-        }
-        else if (appName === 'alarm') {
-            container.innerHTML = `<div style="text-align:center;"><div style="font-size:48px;">⏰</div><input type="time" id="alarm-time-${winId}" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:12px;">
-                <button onclick="setAlarm_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">✅ ضبط المنبه</button></div>`;
-            window[`setAlarm_${winId}`] = () => {
-                let time = document.getElementById(`alarm-time-${winId}`).value;
-                if(time) { 
-                    let now = new Date(); 
-                    let [h,m] = time.split(':'); 
-                    let alarm = new Date(); 
-                    alarm.setHours(parseInt(h), parseInt(m), 0); 
-                    if(alarm<=now) alarm.setDate(alarm.getDate()+1); 
-                    let diff = alarm-now; 
-                    setTimeout(()=>{ alert('⏰ وقت المنبه!'); showNotification('🔔 وقت المنبه!'); }, diff); 
-                    showNotification(`✅ تم ضبط المنبه على ${time}`); 
-                }
-            };
-        }
-        else if (appName === 'currency') {
-            container.innerHTML = `<div class="currency-row"><input type="number" id="currency-amount-${winId}" placeholder="المبلغ" value="1" oninput="convertCurrency_${winId}()"></div>
-                <div class="currency-row"><select id="currency-from-${winId}" onchange="convertCurrency_${winId}()">${Object.keys(rates).map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
-                <span>→</span><select id="currency-to-${winId}" onchange="convertCurrency_${winId}()">${Object.keys(rates).map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
-                <div class="currency-row"><div style="flex:1; text-align:center; padding:12px; background:#f0f0f0; border-radius:12px;" id="currency-result-${winId}">1 USD</div></div>`;
-            window[`convertCurrency_${winId}`] = () => {
-                let amt = parseFloat(document.getElementById(`currency-amount-${winId}`).value) || 0;
-                let from = document.getElementById(`currency-from-${winId}`).value;
-                let to = document.getElementById(`currency-to-${winId}`).value;
-                let result = (amt / rates[from]) * rates[to];
-                document.getElementById(`currency-result-${winId}`).innerHTML = `${result.toFixed(2)} ${to}`;
-            };
-            setTimeout(() => window[`convertCurrency_${winId}`](), 100);
-        }
-        else if (appName === 'browser') {
-            container.innerHTML = `<input type="text" id="browser-url-${winId}" placeholder="https://google.com" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:12px;">
-                <button onclick="loadWeb_${winId}()" style="width:100%; margin:10px 0; padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">🔍 بحث</button>
-                <iframe id="browser-frame-${winId}" style="width:100%; height:250px; border:1px solid #ddd; border-radius:12px;"></iframe>`;
-            window[`loadWeb_${winId}`] = () => {
-                let url = document.getElementById(`browser-url-${winId}`).value;
-                document.getElementById(`browser-frame-${winId}`).src = url.startsWith('http') ? url : 'https://' + url;
-            };
-        }
-        else if (appName === 'settings') {
-            let totalSize = 0;
-            for(let i=0;i<localStorage.length;i++) totalSize += (localStorage.key(i).length + localStorage.getItem(localStorage.key(i)).length)*2;
-            container.innerHTML = `<div><div>⚙️ الإعدادات</div><div>💾 التخزين: ${(totalSize/1048576).toFixed(2)} MB</div>
-                <div>🎨 الوضع: ${document.body.classList.contains('light-mode')?'نهار ☀️':'ليل 🌙'}</div>
-                <div>📱 الجهاز: ${/Mobi/.test(navigator.userAgent)?'جوال':'حاسوب'}</div>
-                <button onclick="clearAllData_${winId}()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
-                <button onclick="exportData_${winId}()" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير البيانات</button></div>`;
-            window[`clearAllData_${winId}`] = () => { if(confirm('مسح جميع البيانات؟')){ localStorage.clear(); showNotification('✅ تم مسح جميع البيانات'); setTimeout(()=>location.reload(),1000); } };
-            window[`exportData_${winId}`] = () => { let d={}; for(let i=0;i<localStorage.length;i++) d[localStorage.key(i)]=localStorage.getItem(localStorage.key(i)); let b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`v8_backup_${Date.now()}.json`; a.click(); showNotification('✅ تم تصدير البيانات'); };
-        }
-    }
-
-    // سحب النوافذ
-    let activeDrag = null;
-    function startDrag(event, winId) {
-        event.preventDefault();
-        let win = windows.find(w => w.id === winId);
-        if(!win) return;
-        let rect = win.element.getBoundingClientRect();
-        let clientX = event.touches ? event.touches[0].clientX : event.clientX;
-        let clientY = event.touches ? event.touches[0].clientY : event.clientY;
-        let offsetX = clientX - rect.left;
-        let offsetY = clientY - rect.top;
-        activeDrag = { win, offsetX, offsetY };
         
-        function onMove(e) {
-            if(!activeDrag) return;
-            let cx = e.touches ? e.touches[0].clientX : e.clientX;
-            let cy = e.touches ? e.touches[0].clientY : e.clientY;
-            let newX = cx - activeDrag.offsetX;
-            let newY = cy - activeDrag.offsetY;
-            let maxX = window.innerWidth - activeDrag.win.element.offsetWidth;
-            let maxY = window.innerHeight - activeDrag.win.element.offsetHeight - 55;
-            newX = Math.max(0, Math.min(newX, maxX));
-            newY = Math.max(0, Math.min(newY, maxY));
-            activeDrag.win.element.style.left = newX + 'px';
-            activeDrag.win.element.style.top = newY + 'px';
+        document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
+        config.element = document.getElementById(config.id);
+        config.contentElement = document.getElementById(`content-${config.id}`);
+        
+        // عرض محتوى التطبيق
+        if (config.instance && config.instance.render) {
+            const html = config.instance.render();
+            if (html) config.contentElement.innerHTML = html;
+            if (config.instance.bindEvents) {
+                setTimeout(() => config.instance.bindEvents(), 50);
+            }
         }
-        function onStop() {
-            activeDrag = null;
+        
+        this.bringToFront(config.id);
+    }
+    
+    updateWindowContent(windowId) {
+        const config = this.windows.get(windowId);
+        if (config && config.instance && config.instance.render && config.contentElement) {
+            const html = config.instance.render();
+            config.contentElement.innerHTML = html;
+            if (config.instance.bindEvents) {
+                setTimeout(() => config.instance.bindEvents(), 50);
+            }
+        }
+    }
+    
+    bringToFront(windowId) {
+        const config = this.windows.get(windowId);
+        if (config) {
+            config.zIndex = this.nextZIndex++;
+            if (config.element) config.element.style.zIndex = config.zIndex;
+        }
+    }
+    
+    closeWindow(windowId) {
+        const config = this.windows.get(windowId);
+        if (!config) return;
+        
+        if (config.instance && config.instance.destroy) {
+            config.instance.destroy();
+        }
+        
+        if (config.element) config.element.remove();
+        this.appRegistry.destroyInstance(config.appId, windowId);
+        this.windows.delete(windowId);
+        this.eventBus.emit('window:closed', { windowId, appId: config.appId });
+    }
+    
+    startDrag(event, windowId) {
+        event.preventDefault();
+        const config = this.windows.get(windowId);
+        if (!config || !config.element) return;
+        
+        this.bringToFront(windowId);
+        
+        const rect = config.element.getBoundingClientRect();
+        const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+        const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+        const offsetX = clientX - rect.left;
+        const offsetY = clientY - rect.top;
+        
+        this.activeDrag = { config, offsetX, offsetY };
+        
+        const onMove = (e) => {
+            if (!this.activeDrag) return;
+            e.preventDefault();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            let newX = cx - this.activeDrag.offsetX;
+            let newY = cy - this.activeDrag.offsetY;
+            
+            newX = Math.max(0, Math.min(newX, window.innerWidth - config.element.offsetWidth));
+            newY = Math.max(0, Math.min(newY, window.innerHeight - config.element.offsetHeight - 55));
+            
+            config.element.style.left = newX + 'px';
+            config.element.style.top = newY + 'px';
+            config.x = newX;
+            config.y = newY;
+        };
+        
+        const onStop = () => {
+            this.activeDrag = null;
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onStop);
             document.removeEventListener('touchmove', onMove);
             document.removeEventListener('touchend', onStop);
-        }
+        };
+        
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onStop);
         document.addEventListener('touchmove', onMove);
         document.addEventListener('touchend', onStop);
     }
+    
+    getAllWindows() {
+        return Array.from(this.windows.values());
+    }
+}
 
-    loadDesktopIcons();
-    showNotification('✨ مرحباً بك في V8 Cloud OS v8.2');
+// ---------- 5. Internal Navigation Stack ----------
+class V8NavigationStack {
+    constructor(eventBus, windowManager) {
+        this.eventBus = eventBus;
+        this.windowManager = windowManager;
+        this.history = [];
+        this.currentIndex = -1;
+    }
+    
+    push(state) {
+        this.history = this.history.slice(0, this.currentIndex + 1);
+        this.history.push(state);
+        this.currentIndex++;
+        this.eventBus.emit('navigation:changed', { canGoBack: this.canGoBack(), canGoForward: this.canGoForward() });
+    }
+    
+    back() {
+        if (this.canGoBack()) {
+            this.currentIndex--;
+            const state = this.history[this.currentIndex];
+            this.eventBus.emit('navigation:back', state);
+            return state;
+        }
+        return null;
+    }
+    
+    forward() {
+        if (this.canGoForward()) {
+            this.currentIndex++;
+            const state = this.history[this.currentIndex];
+            this.eventBus.emit('navigation:forward', state);
+            return state;
+        }
+        return null;
+    }
+    
+    canGoBack() { return this.currentIndex > 0; }
+    canGoForward() { return this.currentIndex < this.history.length - 1; }
+    
+    getCurrent() { return this.history[this.currentIndex]; }
+}
+
+// ---------- 6. تطبيقات النظام (Components) ----------
+
+// 6.1 مفكرة
+class NotesComponent {
+    constructor(windowId, props) {
+        this.windowId = windowId;
+        this.props = props;
+        this.content = localStorage.getItem('notes_content') || '';
+    }
+    
+    render() {
+        return `
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <textarea id="notes-${this.windowId}" style="width:100%; height:200px; padding:12px; border:1px solid #ddd; border-radius:16px;">${this.content}</textarea>
+                <button id="save-${this.windowId}" style="padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:12px;">💾 حفظ</button>
+            </div>
+        `;
+    }
+    
+    bindEvents() {
+        const saveBtn = document.getElementById(`save-${this.windowId}`);
+        const textarea = document.getElementById(`notes-${this.windowId}`);
+        
+        if (saveBtn) {
+            saveBtn.onclick = () => {
+                this.content = textarea.value;
+                localStorage.setItem('notes_content', this.content);
+                v8.eventBus.emit('notification', { message: '✅ تم حفظ الملاحظات', type: 'success' });
+            };
+        }
+    }
+    
+    destroy() {
+        // تنظيف
+    }
+}
+
+// 6.2 حاسبة
+class CalculatorComponent {
+    constructor(windowId, props) {
+        this.windowId = windowId;
+        this.value = '0';
+        this.previousValue = 0;
+        this.operator = null;
+        this.waitingForOperand = false;
+    }
+    
+    render() {
+        return `
+            <div>
+                <input id="calc-display-${this.windowId}" type="text" readonly value="${this.value}" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px; margin-bottom:12px;">
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+                    ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(b => `
+                        <button class="calc-btn-${this.windowId}" data-value="${b}" style="padding:12px; border:1px solid #ddd; border-radius:12px; background:#f5f5f5; cursor:pointer;">${b}</button>
+                    `).join('')}
+                    <button id="calc-clear-${this.windowId}" style="padding:12px; background:#dc3545; color:white; border:none; border-radius:12px; cursor:pointer;">C</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    bindEvents() {
+        const btns = document.querySelectorAll(`.calc-btn-${this.windowId}`);
+        btns.forEach(btn => {
+            btn.onclick = () => this.handleInput(btn.getAttribute('data-value'));
+        });
+        
+        const clearBtn = document.getElementById(`calc-clear-${this.windowId}`);
+        if (clearBtn) clearBtn.onclick = () => this.clear();
+    }
+    
+    handleInput(val) {
+        const display = document.getElementById(`calc-display-${this.windowId}`);
+        if (val >= '0' && val <= '9') {
+            if (this.waitingForOperand) {
+                this.value = val;
+                this.waitingForOperand = false;
+            } else {
+                this.value = this.value === '0' ? val : this.value + val;
+            }
+        } else if (val === '.') {
+            if (!this.value.includes('.')) this.value += '.';
+        } else if (val === '+' || val === '-' || val === '*' || val === '/') {
+            const current = parseFloat(this.value);
+            if (this.operator && !this.waitingForOperand) {
+                this.calculate();
+            }
+            this.previousValue = parseFloat(this.value);
+            this.operator = val;
+            this.waitingForOperand = true;
+        } else if (val === '=') {
+            this.calculate();
+            this.operator = null;
+            this.waitingForOperand = true;
+        }
+        
+        if (display) display.value = this.value;
+    }
+    
+    calculate() {
+        const current = parseFloat(this.value);
+        let result = 0;
+        switch (this.operator) {
+            case '+': result = this.previousValue + current; break;
+            case '-': result = this.previousValue - current; break;
+            case '*': result = this.previousValue * current; break;
+            case '/': result = this.previousValue / current; break;
+            default: return;
+        }
+        this.value = result.toString();
+        if (this.value === 'Infinity') this.value = 'خطأ';
+        if (this.value === 'NaN') this.value = '0';
+    }
+    
+    clear() {
+        this.value = '0';
+        this.previousValue = 0;
+        this.operator = null;
+        this.waitingForOperand = false;
+        const display = document.getElementById(`calc-display-${this.windowId}`);
+        if (display) display.value = this.value;
+    }
+    
+    destroy() {}
+}
+
+// 6.3 إعدادات
+class SettingsComponent {
+    constructor(windowId, props) {
+        this.windowId = windowId;
+    }
+    
+    render() {
+        const totalSize = this.calculateStorageSize();
+        return `
+            <div>
+                <div style="margin:15px 0;">⚙️ إعدادات V8.3</div>
+                <div style="margin:15px 0;">💾 التخزين: ${totalSize} MB</div>
+                <div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode') ? 'نهار ☀️' : 'ليل 🌙'}</div>
+                <button id="clear-data-${this.windowId}" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
+                <button id="close-all-${this.windowId}" style="width:100%; padding:14px; background:#667eea; color:white; border:none; border-radius:16px; margin-top:10px;">❌ إغلاق جميع النوافذ</button>
+            </div>
+        `;
+    }
+    
+    calculateStorageSize() {
+        let total = 0;
+        for(let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            total += (key.length + (localStorage.getItem(key) || '').length) * 2;
+        }
+        return (total / 1048576).toFixed(2);
+    }
+    
+    bindEvents() {
+        const clearBtn = document.getElementById(`clear-data-${this.windowId}`);
+        if (clearBtn) {
+            clearBtn.onclick = () => {
+                if (confirm('مسح جميع البيانات؟')) {
+                    localStorage.clear();
+                    v8.eventBus.emit('notification', { message: '✅ تم مسح البيانات', type: 'success' });
+                    setTimeout(() => location.reload(), 1000);
+                }
+            };
+        }
+        
+        const closeAllBtn = document.getElementById(`close-all-${this.windowId}`);
+        if (closeAllBtn) {
+            closeAllBtn.onclick = () => {
+                const windows = v8.windowManager.getAllWindows();
+                windows.forEach(win => v8.windowManager.closeWindow(win.id));
+                v8.eventBus.emit('notification', { message: '✅ تم إغلاق جميع النوافذ', type: 'success' });
+            };
+        }
+    }
+    
+    destroy() {}
+}
+
+// ---------- 7. UI Renderer (View Only) ----------
+class V8UIRenderer {
+    constructor(appRegistry, windowManager, eventBus) {
+        this.appRegistry = appRegistry;
+        this.windowManager = windowManager;
+        this.eventBus = eventBus;
+    }
+    
+    renderDesktopIcons() {
+        const container = document.getElementById('desktopIcons');
+        const apps = this.appRegistry.getAllApps();
+        
+        container.innerHTML = apps.map(app => `
+            <div class="desktop-icon" data-app-id="${app.id}">
+                <div class="icon">${app.icon}</div>
+                <div class="label">${app.name}</div>
+            </div>
+        `).join('');
+        
+        // ربط الأحداث
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            icon.onclick = () => {
+                const appId = icon.getAttribute('data-app-id');
+                this.windowManager.createWindow(appId);
+                this.eventBus.emit('notification', { message: `🚀 فتح ${appId}`, type: 'info' });
+            };
+        });
+    }
+    
+    updateClock() {
+        const update = () => {
+            const now = new Date();
+            document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+        };
+        update();
+        setInterval(update, 1000);
+    }
+    
+    initBattery() {
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                const update = () => {
+                    const level = Math.round(battery.level * 100);
+                    document.getElementById('batteryStatus').innerHTML = battery.charging ? `⚡ ${level}%` : `🔋 ${level}%`;
+                };
+                update();
+                battery.addEventListener('levelchange', update);
+                battery.addEventListener('chargingchange', update);
+            });
+        }
+    }
+    
+    initNetwork() {
+        const update = () => {
+            document.getElementById('networkStatus').innerHTML = navigator.onLine ? '📶 Online' : '📡 Offline';
+        };
+        update();
+        window.addEventListener('online', update);
+        window.addEventListener('offline', update);
+    }
+    
+    initTheme() {
+        const btn = document.getElementById('themeToggle');
+        btn.onclick = () => {
+            document.body.classList.toggle('light-mode');
+            btn.innerHTML = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+            this.eventBus.emit('notification', { message: document.body.classList.contains('light-mode') ? '✅ وضع النهار' : '✅ وضع الليل', type: 'success' });
+        };
+    }
+    
+    initStartMenu() {
+        document.getElementById('startMenu').onclick = () => {
+            this.eventBus.emit('notification', { message: '☁️ V8.3 Cloud OS - Unified Kernel', type: 'info' });
+        };
+    }
+    
+    initNavigation() {
+        document.getElementById('navBack').onclick = () => {
+            if (v8.navigation.canGoBack()) {
+                v8.navigation.back();
+                this.eventBus.emit('notification', { message: '◀ رجوع', type: 'info' });
+            } else {
+                this.eventBus.emit('notification', { message: 'لا توجد صفحة سابقة', type: 'warning' });
+            }
+        };
+        
+        document.getElementById('navForward').onclick = () => {
+            if (v8.navigation.canGoForward()) {
+                v8.navigation.forward();
+                this.eventBus.emit('notification', { message: 'تقدم ▶', type: 'info' });
+            } else {
+                this.eventBus.emit('notification', { message: 'لا توجد صفحة تالية', type: 'warning' });
+            }
+        };
+        
+        document.getElementById('navRefresh').onclick = () => {
+            location.reload();
+        };
+    }
+    
+    initNotifications() {
+        this.eventBus.on('notification', (data) => {
+            this.showNotification(data.message, data.type);
+        });
+    }
+    
+    showNotification(message, type = 'info') {
+        const colors = {
+            success: '#28a745', error: '#dc3545', warning: '#ffc107', info: '#667eea'
+        };
+        const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+        
+        const n = document.createElement('div');
+        n.className = 'notification';
+        n.innerHTML = `${icons[type]} ${message}`;
+        n.style.borderRight = `4px solid ${colors[type]}`;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 2500);
+    }
+}
+
+// ---------- 8. Kernel Initialization ----------
+const v8 = {
+    eventBus: new V8EventBus(),
+    appRegistry: null,
+    windowManager: null,
+    navigation: null,
+    storage: null,
+    ui: null
+};
+
+async function initV8() {
+    console.log('🚀 V8.3 Unified Kernel initializing...');
+    
+    // تهيئة التخزين
+    v8.storage = new V8Storage();
+    await v8.storage.init();
+    
+    // تهيئة المكونات الأساسية
+    v8.appRegistry = new V8AppRegistry(v8.eventBus);
+    v8.windowManager = new V8WindowManager(v8.eventBus, v8.appRegistry);
+    v8.navigation = new V8NavigationStack(v8.eventBus, v8.windowManager);
+    v8.ui = new V8UIRenderer(v8.appRegistry, v8.windowManager, v8.eventBus);
+    
+    // تسجيل التطبيقات
+    v8.appRegistry.register('notes', {
+        name: '📝 مفكرة',
+        icon: '📝',
+        component: NotesComponent
+    });
+    
+    v8.appRegistry.register('calculator', {
+        name: '🔢 حاسبة',
+        icon: '🔢',
+        component: CalculatorComponent
+    });
+    
+    v8.appRegistry.register('settings', {
+        name: '⚙️ إعدادات',
+        icon: '⚙️',
+        component: SettingsComponent
+    });
+    
+    // تهيئة واجهة المستخدم
+    v8.ui.renderDesktopIcons();
+    v8.ui.updateClock();
+    v8.ui.initBattery();
+    v8.ui.initNetwork();
+    v8.ui.initTheme();
+    v8.ui.initStartMenu();
+    v8.ui.initNavigation();
+    v8.ui.initNotifications();
+    
+    // ربط الـ window manager للوصول العالمي
+    window.v8WindowManager = v8.windowManager;
+    
+    v8.eventBus.emit('notification', { message: '✨ V8.3 Unified Kernel جاهز', type: 'success' });
+    console.log('%c✅ V8.3 Unified Kernel Ready', 'color: #28a745; font-size: 14px; font-weight: bold;');
+    
+    return v8;
+}
+
+// تشغيل النظام
+initV8();
 </script>
 </body>
-</html>
+    </html>
