@@ -1,198 +1,300 @@
 <!DOCTYPE html>
-<html>
+<html dir="rtl" lang="ar">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V8 Cloud OS</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        * {
             margin: 0;
-        }
-        .box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 350px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        h1 {
-            margin-bottom: 25px;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
+            padding: 0;
             box-sizing: border-box;
         }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            overflow: hidden;
+        }
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55px;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
             color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 1000;
+        }
+        .start-menu {
+            background: rgba(255,255,255,0.15);
+            padding: 8px 16px;
+            border-radius: 12px;
             cursor: pointer;
-            margin-top: 10px;
         }
-        button:hover {
-            background: #5a67d8;
+        .desktop-icons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        .switch {
-            color: #667eea;
-            margin-top: 15px;
+        .desktop-icon {
+            width: 75px;
+            text-align: center;
             cursor: pointer;
-            font-size: 14px;
-        }
-        .switch:hover {
-            text-decoration: underline;
-        }
-        .hidden {
-            display: none;
-        }
-        .message {
-            margin-top: 15px;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 16px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+        .desktop-icon:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+        .desktop-icon .icon {
+            font-size: 42px;
+        }
+        .desktop-icon .label {
+            color: white;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        .window {
+            position: absolute;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 85%;
+            max-width: 400px;
+            min-height: 350px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.95);
+        }
+        .window-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px;
+            border-radius: 20px 20px 0 0;
+            color: white;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+        }
+        .window-content {
+            padding: 20px;
+            flex: 1;
+            overflow: auto;
+            min-height: 250px;
+        }
+        .window-close {
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 3000;
             font-size: 14px;
+            text-align: center;
         }
-        .error {
-            background: #fee;
-            color: #c00;
-        }
-        .success {
-            background: #e8f5e9;
-            color: #2e7d32;
+        @media (max-width: 600px) {
+            .desktop-icon { width: 65px; }
+            .desktop-icon .icon { font-size: 36px; }
+            .window { width: 92%; }
         }
     </style>
 </head>
 <body>
-<div class="box">
-    <h1>☁️ V8 Cloud OS</h1>
-    
-    <div id="loginDiv">
-        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
-        <input type="password" id="loginPassword" placeholder="كلمة المرور">
-        <button id="loginBtn">🚀 دخول</button>
-        <div class="switch" id="showRegBtn">ليس لديك حساب؟ سجل الآن</div>
-    </div>
-    
-    <div id="regDiv" class="hidden">
-        <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
-        <input type="password" id="regPassword" placeholder="كلمة المرور">
-        <button id="regBtn">✅ تسجيل</button>
-        <div class="switch" id="showLoginBtn">لديك حساب؟ سجل دخول</div>
-    </div>
-    
-    <div id="msgDiv" class="message hidden"></div>
+
+<div class="taskbar">
+    <div class="start-menu" onclick="showNotification('☁️ V8 Cloud OS')">☁️ V8</div>
+    <div id="clock"></div>
 </div>
 
+<div class="desktop-icons" id="desktopIcons"></div>
+<div id="windowsContainer"></div>
+
 <script>
-// تهيئة Supabase
-const supabase = supabaseJs.createClient(
-    'https://rbgphnexmnmjwtgabrgr.supabase.co',
-    'sb_publishable_wAzalDnP8M3hwSAU8kgJeQ_pwBM30VY'
-);
-
-// عناصر DOM
-const loginDiv = document.getElementById('loginDiv');
-const regDiv = document.getElementById('regDiv');
-const msgDiv = document.getElementById('msgDiv');
-
-// إظهار رسالة
-function showMessage(text, isError = false) {
-    msgDiv.textContent = text;
-    msgDiv.className = 'message ' + (isError ? 'error' : 'success');
-    msgDiv.classList.remove('hidden');
-    setTimeout(() => {
-        msgDiv.classList.add('hidden');
-    }, 3000);
-}
-
-// التبديل بين النماذج
-document.getElementById('showRegBtn').onclick = () => {
-    loginDiv.classList.add('hidden');
-    regDiv.classList.remove('hidden');
-    msgDiv.classList.add('hidden');
-};
-
-document.getElementById('showLoginBtn').onclick = () => {
-    regDiv.classList.add('hidden');
-    loginDiv.classList.remove('hidden');
-    msgDiv.classList.add('hidden');
-};
-
-// تسجيل الدخول
-document.getElementById('loginBtn').onclick = async () => {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    if (!email || !password) {
-        showMessage('❌ الرجاء إدخال البريد وكلمة المرور', true);
-        return;
+    function showNotification(msg) {
+        let n = document.createElement('div');
+        n.className = 'notification';
+        n.textContent = msg;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 2500);
     }
-    
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-        showMessage('❌ ' + error.message, true);
-    } else {
-        showMessage('✅ مرحباً بك في V8 Cloud OS!');
-        // بعد 1 ثانية، انتقل لسطح المكتب
-        setTimeout(() => {
-            alert('تم تسجيل الدخول بنجاح! مرحباً بك');
-        }, 500);
-    }
-};
 
-// تسجيل حساب جديد
-document.getElementById('regBtn').onclick = async () => {
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    
-    if (!email || !password) {
-        showMessage('❌ الرجاء إدخال البريد وكلمة المرور', true);
-        return;
+    function updateClock() {
+        let now = new Date();
+        document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
     }
-    
-    if (password.length < 6) {
-        showMessage('❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل', true);
-        return;
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    let apps = [
+        { name: 'notes', display: '📝 مفكرة', icon: '📝' },
+        { name: 'calculator', display: '🔢 حاسبة', icon: '🔢' },
+        { name: 'files', display: '📁 ملفات', icon: '📁' },
+        { name: 'settings', display: '⚙️ إعدادات', icon: '⚙️' }
+    ];
+
+    function loadDesktopIcons() {
+        let container = document.getElementById('desktopIcons');
+        container.innerHTML = apps.map(app => `
+            <div class="desktop-icon" onclick="openApp('${app.name}')">
+                <div class="icon">${app.icon}</div>
+                <div class="label">${app.display}</div>
+            </div>
+        `).join('');
     }
-    
-    showMessage('⏳ جاري إنشاء الحساب...');
-    
-    const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-            data: { created_at: new Date().toISOString() }
+
+    let windows = [];
+    let nextZ = 100;
+
+    function openApp(appName) {
+        let winId = Date.now();
+        let winHtml = `
+            <div id="win-${winId}" class="window" style="left:50px; top:100px; z-index:${nextZ++}">
+                <div class="window-header" onmousedown="startDrag(event, 'win-${winId}')">
+                    <span>${apps.find(a=>a.name===appName)?.display || appName}</span>
+                    <div class="window-close" onclick="closeWindow('win-${winId}')">✕</div>
+                </div>
+                <div class="window-content" id="content-${winId}">
+                    <div style="text-align:center; padding:20px;">⏳ جاري التحميل...</div>
+                </div>
+            </div>
+        `;
+        document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
+        let content = document.getElementById(`content-${winId}`);
+        renderApp(content, appName);
+        windows.push({ id: `win-${winId}`, element: document.getElementById(`win-${winId}`) });
+    }
+
+    function renderApp(container, appName) {
+        if (appName === 'notes') {
+            let saved = localStorage.getItem('notes_content') || '';
+            container.innerHTML = `
+                <textarea id="notes-area" style="width:100%; height:180px; padding:12px; border:1px solid #ddd; border-radius:16px; font-family:inherit;">${saved}</textarea>
+                <button onclick="saveNotes()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>
+            `;
+            window.saveNotes = () => {
+                let content = document.getElementById('notes-area').value;
+                localStorage.setItem('notes_content', content);
+                showNotification('✅ تم حفظ الملاحظات');
+            };
+        }
+        else if (appName === 'calculator') {
+            container.innerHTML = `
+                <input type="text" id="calc-display" readonly style="width:100%; padding:15px; font-size:28px; text-align:left; border:1px solid #ddd; border-radius:16px; margin-bottom:12px;">
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+                    ${'789/456*123-0.=+'.split('').map(btn => `<button onclick="calcPress('${btn}')" style="padding:18px; font-size:20px; border:1px solid #ddd; border-radius:16px; background:#f5f5f5;">${btn}</button>`).join('')}
+                    <button onclick="calcPress('C')" style="padding:18px; background:#dc3545; color:white; border:none; border-radius:16px;">C</button>
+                </div>
+            `;
+            let calcStr = '';
+            window.calcPress = (val) => {
+                let display = document.getElementById('calc-display');
+                if(val === '=') { try { calcStr = eval(calcStr).toString(); display.value = calcStr; } catch(e) { display.value = 'Error'; calcStr = ''; } }
+                else if(val === 'C') { calcStr = ''; display.value = ''; }
+                else { calcStr += val; display.value = calcStr; }
+            };
+        }
+        else if (appName === 'files') {
+            let files = JSON.parse(localStorage.getItem('user_files') || '[]');
+            container.innerHTML = `
+                <button onclick="addFile()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ ملف جديد</button>
+                <div style="border:1px solid #ddd; border-radius:16px; padding:12px;">
+                    ${files.map(f => `<div style="padding:10px; border-bottom:1px solid #eee;">📄 ${f.name}</div>`).join('')}
+                    ${files.length === 0 ? '<p style="color:#999;">لا توجد ملفات</p>' : ''}
+                </div>
+            `;
+            window.addFile = () => {
+                let name = prompt('اسم الملف:');
+                if(name) {
+                    let files = JSON.parse(localStorage.getItem('user_files') || '[]');
+                    files.push({ name, created: new Date() });
+                    localStorage.setItem('user_files', JSON.stringify(files));
+                    openApp('files');
+                    showNotification('✅ تم إنشاء الملف');
+                }
+            };
+        }
+        else if (appName === 'settings') {
+            container.innerHTML = `
+                <div>
+                    <div style="margin:10px 0;">⚙️ الإعدادات</div>
+                    <div style="margin:10px 0;">💾 التخزين: LocalStorage</div>
+                    <button onclick="clearAllData()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
+                </div>
+            `;
+            window.clearAllData = () => {
+                if(confirm('هل أنت متأكد؟ سيتم مسح جميع الملاحظات والملفات المحفوظة')) {
+                    localStorage.clear();
+                    showNotification('✅ تم مسح جميع البيانات');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            };
+        }
+    }
+
+    function startDrag(event, winId) {
+        let win = windows.find(w => w.id === winId);
+        if(!win) return;
+        let rect = win.element.getBoundingClientRect();
+        let clientX = event.touches ? event.touches[0].clientX : event.clientX;
+        let clientY = event.touches ? event.touches[0].clientY : event.clientY;
+        let offsetX = clientX - rect.left;
+        let offsetY = clientY - rect.top;
+        
+        function onMove(e) {
+            let cx = e.touches ? e.touches[0].clientX : e.clientX;
+            let cy = e.touches ? e.touches[0].clientY : e.clientY;
+            win.element.style.left = (cx - offsetX) + 'px';
+            win.element.style.top = (cy - offsetY) + 'px';
+        }
+        function onStop() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onStop);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onStop);
+    }
+
+    function closeWindow(winId) {
+        let win = windows.find(w => w.id === winId);
+        if(win) { win.element.remove(); windows = windows.filter(w => w.id !== winId); }
+    }
+
+    document.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.window-header')) {
+            let header = e.target.closest('.window-header');
+            let win = header.closest('.window');
+            let winId = win.id;
+            startDrag(e, winId);
         }
     });
-    
-    if (error) {
-        showMessage('❌ ' + error.message, true);
-    } else {
-        showMessage('✅ تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول');
-        // العودة لشاشة الدخول بعد 2 ثانية
-        setTimeout(() => {
-            regDiv.classList.add('hidden');
-            loginDiv.classList.remove('hidden');
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = '';
-        }, 2000);
-    }
-};
+
+    loadDesktopIcons();
+    showNotification('✨ مرحباً بك في V8 Cloud OS');
 </script>
 </body>
-</html>
+</html>   
