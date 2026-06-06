@@ -1,237 +1,79 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V8 Cloud OS</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:system-ui;overflow:hidden;background:linear-gradient(135deg,#1a1a2e,#16213e);}
-        .login-container{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;z-index:2000;}
-        .login-box{background:rgba(255,255,255,0.95);padding:30px;border-radius:24px;width:90%;max-width:350px;text-align:center;}
-        .login-box h1{font-size:26px;margin-bottom:20px;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-        .login-input{width:100%;padding:14px;margin:8px 0;border:1px solid #ddd;border-radius:16px;font-size:16px;}
-        .login-btn{width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:16px;font-size:16px;cursor:pointer;margin-top:10px;}
-        .switch-auth{margin-top:15px;color:#667eea;cursor:pointer;}
-        .taskbar{position:fixed;bottom:0;left:0;right:0;height:55px;background:rgba(0,0,0,0.85);color:white;display:flex;justify-content:space-between;align-items:center;padding:0 16px;z-index:1000;}
-        .start-menu{background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:12px;cursor:pointer;}
-        .desktop-icons{position:absolute;top:20px;right:20px;display:flex;flex-direction:column;gap:15px;}
-        .desktop-icon{width:75px;text-align:center;cursor:pointer;padding:10px;border-radius:16px;background:rgba(0,0,0,0.4);}
-        .desktop-icon .icon{font-size:42px;}
-        .desktop-icon .label{color:white;font-size:11px;}
-        .window{position:absolute;background:white;border-radius:20px;width:85%;max-width:400px;min-height:350px;background:rgba(255,255,255,0.95);}
-        .window-header{background:linear-gradient(135deg,#667eea,#764ba2);padding:14px;border-radius:20px 20px 0 0;color:white;cursor:move;display:flex;justify-content:space-between;}
-        .window-content{padding:20px;overflow:auto;min-height:250px;}
-        .window-close{cursor:pointer;background:rgba(255,255,255,0.2);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-        .notification{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 24px;border-radius:40px;z-index:3000;}
-    </style>
+<html>
+<head><title>V8 Cloud OS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+.box{background:white;padding:30px;border-radius:20px;width:300px;text-align:center}
+input{width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:10px}
+button{width:100%;padding:10px;background:#667eea;color:white;border:none;border-radius:10px;cursor:pointer}
+.switch{color:#667eea;margin-top:10px;cursor:pointer}
+.hidden{display:none}
+</style>
 </head>
 <body>
-<div id="loginScreen" class="login-container">
-    <div class="login-box">
-        <h1>☁️ V8 Cloud OS</h1>
-        <div id="loginForm">
-            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" class="login-input">
-            <input type="password" id="loginPassword" placeholder="كلمة المرور" class="login-input">
-            <button onclick="handleLogin()" class="login-btn">🚀 دخول</button>
-            <p class="switch-auth" onclick="showRegister()">ليس لديك حساب؟ سجل الآن</p>
-        </div>
-        <div id="registerForm" style="display:none">
-            <input type="email" id="regEmail" placeholder="البريد" class="login-input">
-            <input type="password" id="regPassword" placeholder="كلمة المرور" class="login-input">
-            <button onclick="handleRegister()" class="login-btn">تسجيل</button>
-            <p class="switch-auth" onclick="showLogin()">لديك حساب؟ سجل دخول</p>
-        </div>
-    </div>
+<div id="loginBox">
+<div class="box">
+<h1>☁️ V8 Cloud OS</h1>
+<div id="loginForm">
+<input type="email" id="loginEmail" placeholder="البريد">
+<input type="password" id="loginPassword" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+<div class="switch" onclick="showRegisterForm()">إنشاء حساب جديد</div>
 </div>
-<div id="desktop" style="display:none">
-    <div class="taskbar"><div class="start-menu" onclick="showNotification('V8 Cloud OS')">☁️ V8</div><div id="clock"></div></div>
-    <div class="desktop-icons" id="desktopIcons"></div>
-    <div id="windowsContainer"></div>
+<div id="registerForm" class="hidden">
+<input type="email" id="regEmail" placeholder="البريد">
+<input type="password" id="regPassword" placeholder="كلمة المرور">
+<button onclick="register()">تسجيل</button>
+<div class="switch" onclick="showLoginForm()">عودة لتسجيل الدخول</div>
+</div>
+</div>
 </div>
 <script>
-const SUPABASE_URL = 'https://rbgphnexmnmjwtgabrgr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_wAzalDnP8M3hwSAU8kgJeQ_pwBM30VY';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let currentUser = null;
-let windows = [];
-let nextZ = 100;
+// التصحيح الأول: التأكد من تحميل supabase بشكل صحيح
+window.onload = function() {
+    if (typeof supabaseJs === 'undefined') {
+        alert('خطأ: لم يتم تحميل Supabase SDK. تأكد من اتصال الإنترنت.');
+        return;
+    }
+    window.supabase = supabaseJs.createClient(
+        'https://rbgphnexmnmjwtgabrgr.supabase.co',
+        'sb_publishable_wAzalDnP8M3hwSAU8kgJeQ_pwBM30VY'
+    );
+    console.log('✅ Supabase initialized');
+};
 
-function showNotification(msg) {
-    let n = document.createElement('div');
-    n.className = 'notification';
-    n.textContent = msg;
-    document.body.appendChild(n);
-    setTimeout(() => n.remove(), 2500);
-}
+// تعريف الدوال بشكل عام (global)
+window.showRegisterForm = function() {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('registerForm').classList.remove('hidden');
+};
 
-async function handleLogin() {
+window.showLoginForm = function() {
+    document.getElementById('registerForm').classList.add('hidden');
+    document.getElementById('loginForm').classList.remove('hidden');
+};
+
+window.login = async function() {
+    if (!window.supabase) { alert('جاري تحميل الخدمة، حاول مرة أخرى'); return; }
     let email = document.getElementById('loginEmail').value;
     let password = document.getElementById('loginPassword').value;
-    let { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { showNotification('خطأ: ' + error.message); return; }
-    currentUser = data.user;
-    localStorage.setItem('v8_user', JSON.stringify(currentUser));
-    showNotification('مرحباً ' + currentUser.email);
-    showDesktop();
-}
+    if (!email || !password) { alert('الرجاء إدخال البريد وكلمة المرور'); return; }
+    let { error } = await window.supabase.auth.signInWithPassword({ email, password });
+    if(error) { alert('خطأ: '+error.message); return; }
+    alert('✅ تم الدخول بنجاح');
+};
 
-async function handleRegister() {
+window.register = async function() {
+    if (!window.supabase) { alert('جاري تحميل الخدمة، حاول مرة أخرى'); return; }
     let email = document.getElementById('regEmail').value;
     let password = document.getElementById('regPassword').value;
-    let { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) { showNotification('خطأ: ' + error.message); return; }
-    showNotification('تم التسجيل بنجاح');
-    showLogin();
-}
-
-function showRegister() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-}
-function showLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-}
-function showDesktop() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('desktop').style.display = 'block';
-    updateClock();
-    setInterval(updateClock, 1000);
-    loadDesktopIcons();
-}
-function updateClock() {
-    let now = new Date();
-    document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
-}
-function logout() {
-    supabase.auth.signOut();
-    localStorage.removeItem('v8_user');
-    location.reload();
-}
-let apps = [
-    { name: 'notes', display: '📝 مفكرة', icon: '📝' },
-    { name: 'calculator', display: '🔢 حاسبة', icon: '🔢' },
-    { name: 'files', display: '📁 ملفات', icon: '📁' },
-    { name: 'settings', display: '⚙️ إعدادات', icon: '⚙️' }
-];
-function loadDesktopIcons() {
-    let container = document.getElementById('desktopIcons');
-    container.innerHTML = apps.map(app => `
-        <div class="desktop-icon" onclick="openApp('${app.name}')">
-            <div class="icon">${app.icon}</div>
-            <div class="label">${app.display}</div>
-        </div>
-    `).join('');
-}
-function openApp(appName) {
-    let winId = Date.now();
-    let winHtml = `
-        <div id="win-${winId}" class="window" style="left:50px; top:100px; z-index:${nextZ++}">
-            <div class="window-header" onmousedown="startDrag(event, 'win-${winId}')">
-                <span>${apps.find(a=>a.name===appName)?.display || appName}</span>
-                <div class="window-close" onclick="closeWindow('win-${winId}')">✕</div>
-            </div>
-            <div class="window-content" id="content-${winId}">جاري التحميل...</div>
-        </div>
-    `;
-    document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
-    let content = document.getElementById(`content-${winId}`);
-    renderApp(content, appName);
-    windows.push({ id: `win-${winId}`, element: document.getElementById(`win-${winId}`) });
-}
-async function renderApp(container, appName) {
-    if (appName === 'notes') {
-        let notes = '';
-        if(currentUser) {
-            let { data } = await supabase.from('user_notes').select('note_content').eq('user_id', currentUser.id).single();
-            notes = data?.note_content || '';
-        }
-        container.innerHTML = `
-            <textarea id="notes-area" style="width:100%; height:180px; padding:12px; border:1px solid #ddd; border-radius:16px;">${notes}</textarea>
-            <button onclick="saveNotes()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>
-        `;
-        window.saveNotes = async () => {
-            let content = document.getElementById('notes-area').value;
-            if(currentUser) {
-                await supabase.from('user_notes').upsert({ user_id: currentUser.id, note_content: content });
-                showNotification('تم حفظ الملاحظات');
-            }
-        };
-    }
-    else if (appName === 'calculator') {
-        container.innerHTML = `
-            <input id="calc-display" readonly style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px; margin-bottom:12px;">
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
-                ${'789/456*123-0.=+'.split('').map(btn => `<button onclick="calcPress('${btn}')" style="padding:18px; border:1px solid #ddd; border-radius:16px;">${btn}</button>`).join('')}
-                <button onclick="calcPress('C')" style="padding:18px; background:#dc3545; color:white; border:none;">C</button>
-            </div>
-        `;
-        let calcStr = '';
-        window.calcPress = (val) => {
-            let display = document.getElementById('calc-display');
-            if(val === '=') { try { calcStr = eval(calcStr).toString(); display.value = calcStr; } catch(e) { display.value = 'Error'; calcStr = ''; } }
-            else if(val === 'C') { calcStr = ''; display.value = ''; }
-            else { calcStr += val; display.value = calcStr; }
-        };
-    }
-    else if (appName === 'files') {
-        let files = [];
-        if(currentUser) {
-            let { data } = await supabase.from('user_files').select('*').eq('user_id', currentUser.id);
-            files = data || [];
-        }
-        container.innerHTML = `
-            <button onclick="addFile()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ ملف جديد</button>
-            <div style="border:1px solid #ddd; border-radius:16px; padding:12px;">
-                ${files.map(f => `<div style="padding:10px; border-bottom:1px solid #eee;">📄 ${f.file_name}</div>`).join('')}
-                ${files.length === 0 ? '<p style="color:#999;">لا توجد ملفات</p>' : ''}
-            </div>
-        `;
-        window.addFile = async () => {
-            let name = prompt('اسم الملف:');
-            if(name && currentUser) {
-                await supabase.from('user_files').insert({ user_id: currentUser.id, file_name: name, file_content: '' });
-                showNotification('تم إنشاء الملف');
-                openApp('files');
-            }
-        };
-    }
-    else if (appName === 'settings') {
-        container.innerHTML = `<div><div style="margin:10px 0;">👤 ${currentUser?.email}</div><button onclick="logout()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px;">🚪 تسجيل خروج</button></div>`;
-    }
-}
-function startDrag(event, winId) {
-    let win = windows.find(w => w.id === winId);
-    if(!win) return;
-    let rect = win.element.getBoundingClientRect();
-    let clientX = event.touches ? event.touches[0].clientX : event.clientX;
-    let clientY = event.touches ? event.touches[0].clientY : event.clientY;
-    let offsetX = clientX - rect.left;
-    let offsetY = clientY - rect.top;
-    let onMove = (e) => {
-        let cx = e.touches ? e.touches[0].clientX : e.clientX;
-        let cy = e.touches ? e.touches[0].clientY : e.clientY;
-        win.element.style.left = (cx - offsetX) + 'px';
-        win.element.style.top = (cy - offsetY) + 'px';
-    };
-    let onStop = () => {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onStop);
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onStop);
-}
-function closeWindow(winId) {
-    let win = windows.find(w => w.id === winId);
-    if(win) { win.element.remove(); windows = windows.filter(w => w.id !== winId); }
-}
-let savedUser = localStorage.getItem('v8_user');
-if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    showDesktop();
-}
+    if (!email || !password) { alert('الرجاء إدخال البريد وكلمة المرور'); return; }
+    let { error } = await window.supabase.auth.signUp({ email, password });
+    if(error) { alert('خطأ: '+error.message); return; }
+    alert('✅ تم التسجيل بنجاح');
+    window.showLoginForm();
+};
 </script>
 </body>
 </html>
