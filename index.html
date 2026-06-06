@@ -1,78 +1,197 @@
 <!DOCTYPE html>
 <html>
-<head><title>V8 Cloud OS</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-body{font-family:sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
-.box{background:white;padding:30px;border-radius:20px;width:300px;text-align:center}
-input{width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:10px}
-button{width:100%;padding:10px;background:#667eea;color:white;border:none;border-radius:10px;cursor:pointer}
-.switch{color:#667eea;margin-top:10px;cursor:pointer}
-.hidden{display:none}
-</style>
+<head>
+    <title>V8 Cloud OS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            margin-bottom: 25px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .switch {
+            color: #667eea;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .switch:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
 </head>
 <body>
-<div id="loginBox">
 <div class="box">
-<h1>☁️ V8 Cloud OS</h1>
-<div id="loginForm">
-<input type="email" id="loginEmail" placeholder="البريد">
-<input type="password" id="loginPassword" placeholder="كلمة المرور">
-<button onclick="login()">دخول</button>
-<div class="switch" onclick="showRegisterForm()">إنشاء حساب جديد</div>
+    <h1>☁️ V8 Cloud OS</h1>
+    
+    <div id="loginDiv">
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+        <input type="password" id="loginPassword" placeholder="كلمة المرور">
+        <button id="loginBtn">🚀 دخول</button>
+        <div class="switch" id="showRegBtn">ليس لديك حساب؟ سجل الآن</div>
+    </div>
+    
+    <div id="regDiv" class="hidden">
+        <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
+        <input type="password" id="regPassword" placeholder="كلمة المرور">
+        <button id="regBtn">✅ تسجيل</button>
+        <div class="switch" id="showLoginBtn">لديك حساب؟ سجل دخول</div>
+    </div>
+    
+    <div id="msgDiv" class="message hidden"></div>
 </div>
-<div id="registerForm" class="hidden">
-<input type="email" id="regEmail" placeholder="البريد">
-<input type="password" id="regPassword" placeholder="كلمة المرور">
-<button onclick="register()">تسجيل</button>
-<div class="switch" onclick="showLoginForm()">عودة لتسجيل الدخول</div>
-</div>
-</div>
-</div>
+
 <script>
-// التصحيح الأول: التأكد من تحميل supabase بشكل صحيح
-window.onload = function() {
-    if (typeof supabaseJs === 'undefined') {
-        alert('خطأ: لم يتم تحميل Supabase SDK. تأكد من اتصال الإنترنت.');
+// تهيئة Supabase
+const supabase = supabaseJs.createClient(
+    'https://rbgphnexmnmjwtgabrgr.supabase.co',
+    'sb_publishable_wAzalDnP8M3hwSAU8kgJeQ_pwBM30VY'
+);
+
+// عناصر DOM
+const loginDiv = document.getElementById('loginDiv');
+const regDiv = document.getElementById('regDiv');
+const msgDiv = document.getElementById('msgDiv');
+
+// إظهار رسالة
+function showMessage(text, isError = false) {
+    msgDiv.textContent = text;
+    msgDiv.className = 'message ' + (isError ? 'error' : 'success');
+    msgDiv.classList.remove('hidden');
+    setTimeout(() => {
+        msgDiv.classList.add('hidden');
+    }, 3000);
+}
+
+// التبديل بين النماذج
+document.getElementById('showRegBtn').onclick = () => {
+    loginDiv.classList.add('hidden');
+    regDiv.classList.remove('hidden');
+    msgDiv.classList.add('hidden');
+};
+
+document.getElementById('showLoginBtn').onclick = () => {
+    regDiv.classList.add('hidden');
+    loginDiv.classList.remove('hidden');
+    msgDiv.classList.add('hidden');
+};
+
+// تسجيل الدخول
+document.getElementById('loginBtn').onclick = async () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        showMessage('❌ الرجاء إدخال البريد وكلمة المرور', true);
         return;
     }
-    window.supabase = supabaseJs.createClient(
-        'https://rbgphnexmnmjwtgabrgr.supabase.co',
-        'sb_publishable_wAzalDnP8M3hwSAU8kgJeQ_pwBM30VY'
-    );
-    console.log('✅ Supabase initialized');
+    
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+        showMessage('❌ ' + error.message, true);
+    } else {
+        showMessage('✅ مرحباً بك في V8 Cloud OS!');
+        // بعد 1 ثانية، انتقل لسطح المكتب
+        setTimeout(() => {
+            alert('تم تسجيل الدخول بنجاح! مرحباً بك');
+        }, 500);
+    }
 };
 
-// تعريف الدوال بشكل عام (global)
-window.showRegisterForm = function() {
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('registerForm').classList.remove('hidden');
-};
-
-window.showLoginForm = function() {
-    document.getElementById('registerForm').classList.add('hidden');
-    document.getElementById('loginForm').classList.remove('hidden');
-};
-
-window.login = async function() {
-    if (!window.supabase) { alert('جاري تحميل الخدمة، حاول مرة أخرى'); return; }
-    let email = document.getElementById('loginEmail').value;
-    let password = document.getElementById('loginPassword').value;
-    if (!email || !password) { alert('الرجاء إدخال البريد وكلمة المرور'); return; }
-    let { error } = await window.supabase.auth.signInWithPassword({ email, password });
-    if(error) { alert('خطأ: '+error.message); return; }
-    alert('✅ تم الدخول بنجاح');
-};
-
-window.register = async function() {
-    if (!window.supabase) { alert('جاري تحميل الخدمة، حاول مرة أخرى'); return; }
-    let email = document.getElementById('regEmail').value;
-    let password = document.getElementById('regPassword').value;
-    if (!email || !password) { alert('الرجاء إدخال البريد وكلمة المرور'); return; }
-    let { error } = await window.supabase.auth.signUp({ email, password });
-    if(error) { alert('خطأ: '+error.message); return; }
-    alert('✅ تم التسجيل بنجاح');
-    window.showLoginForm();
+// تسجيل حساب جديد
+document.getElementById('regBtn').onclick = async () => {
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    
+    if (!email || !password) {
+        showMessage('❌ الرجاء إدخال البريد وكلمة المرور', true);
+        return;
+    }
+    
+    if (password.length < 6) {
+        showMessage('❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل', true);
+        return;
+    }
+    
+    showMessage('⏳ جاري إنشاء الحساب...');
+    
+    const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+            data: { created_at: new Date().toISOString() }
+        }
+    });
+    
+    if (error) {
+        showMessage('❌ ' + error.message, true);
+    } else {
+        showMessage('✅ تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول');
+        // العودة لشاشة الدخول بعد 2 ثانية
+        setTimeout(() => {
+            regDiv.classList.add('hidden');
+            loginDiv.classList.remove('hidden');
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '';
+        }, 2000);
+    }
 };
 </script>
 </body>
