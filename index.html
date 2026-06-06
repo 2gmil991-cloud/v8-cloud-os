@@ -2,834 +2,542 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>V8 Cloud OS | الإصدار 8.3 - Unified Kernel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>V8 Cloud OS | منصة سحابية متكاملة</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22V8%20Cloud%20OS%22,%22short_name%22:%22V8%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22theme_color%22:%22%23667eea%22,%22background_color%22:%22%231a1a2e%22,%22icons%22:[{%22src%22:%22https://emoji.beeimg.com/🚀/144%22,%22sizes%22:%22144x144%22,%22type%22:%22image/png%22}]}">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); overflow: hidden; height: 100vh; width: 100vw; }
-        body.light-mode { background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%); }
-        body.light-mode .taskbar { background: rgba(255,255,255,0.9); color: #333; }
-        body.light-mode .desktop-icon { background: rgba(255,255,255,0.7); color: #333; }
-        body.light-mode .desktop-icon .label { color: #333; }
-        body.light-mode .window { background: rgba(255,255,255,0.98); }
+        body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
         
-        .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 55px; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; z-index: 1000; }
-        .taskbar-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .start-menu, .theme-toggle, .nav-btn { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
-        .start-menu:hover, .theme-toggle:hover, .nav-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.02); }
-        .taskbar-right { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+        /* Login Screen */
+        .login-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .login-box { background: rgba(255,255,255,0.95); padding: 30px 25px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; backdrop-filter: blur(10px); }
+        .login-box h1 { font-size: 26px; margin-bottom: 20px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 16px; font-size: 16px; background: #f8f9fa; }
+        .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 16px; font-size: 16px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .switch-auth { margin-top: 15px; color: #667eea; cursor: pointer; font-size: 14px; }
+        .plan-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-left: 10px; }
+        .plan-free { background: #6c757d; color: white; }
+        .plan-pro { background: #28a745; color: white; }
+        .plan-business { background: #007bff; color: white; }
         
-        .desktop-icons { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 12px; z-index: 10; }
-        .desktop-icon { width: 75px; text-align: center; cursor: pointer; padding: 8px; border-radius: 16px; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); transition: all 0.2s; }
-        .desktop-icon:active { transform: scale(0.95); }
-        .desktop-icon .icon { font-size: 38px; }
-        .desktop-icon .label { color: white; font-size: 10px; margin-top: 4px; }
+        /* Desktop */
+        .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 55px; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 1000; }
+        .start-menu { background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 12px; font-size: 14px; cursor: pointer; }
+        .desktop-icons { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .desktop-icon { width: 75px; text-align: center; cursor: pointer; padding: 10px; border-radius: 16px; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); transition: all 0.2s; }
+        .desktop-icon:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .desktop-icon .icon { font-size: 42px; }
+        .desktop-icon .label { color: white; font-size: 11px; margin-top: 5px; }
         
-        .window { position: absolute; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 450px; min-height: 400px; max-height: 80vh; z-index: 100; display: flex; flex-direction: column; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
-        .window-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px; border-radius: 20px 20px 0 0; color: white; cursor: move; display: flex; justify-content: space-between; align-items: center; touch-action: none; }
-        .window-title { display: flex; gap: 8px; align-items: center; }
-        .window-buttons { display: flex; gap: 8px; align-items: center; }
-        .window-close { cursor: pointer; background: rgba(255,255,255,0.2); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
-        .window-close:active { transform: scale(0.9); }
-        .window-content { padding: 15px; flex: 1; overflow: auto; min-height: 250px; }
+        /* Windows */
+        .window { position: absolute; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 85%; max-width: 400px; min-height: 350px; z-index: 100; display: flex; flex-direction: column; backdrop-filter: blur(20px); background: rgba(255,255,255,0.95); }
+        .window-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 14px; border-radius: 20px 20px 0 0; color: white; cursor: move; display: flex; justify-content: space-between; user-select: none; }
+        .window-content { padding: 20px; flex: 1; overflow: auto; min-height: 250px; }
+        .window-close { cursor: pointer; background: rgba(255,255,255,0.2); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         
-        .notification { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 40px; z-index: 3000; font-size: 13px; text-align: center; animation: slideDown 0.3s ease; max-width: 90%; }
-        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        /* Admin Panel */
+        .admin-badge { position: fixed; top: 10px; left: 10px; background: #dc3545; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; z-index: 1001; cursor: pointer; }
+        .admin-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 80vh; background: white; border-radius: 24px; z-index: 2000; overflow: auto; display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .admin-panel.show { display: block; }
+        .admin-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white; border-radius: 24px 24px 0 0; }
+        .admin-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; padding: 20px; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 16px; text-align: center; }
+        .user-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         
-        @media (max-width: 768px) {
-            .desktop-icon { width: 65px; }
-            .desktop-icon .icon { font-size: 32px; }
-            .window { width: 95%; max-width: 95%; left: 2.5% !important; right: 2.5% !important; }
-            .taskbar-left .start-menu, .taskbar-left .theme-toggle, .nav-btn { padding: 4px 8px; font-size: 11px; }
-        }
-        @media (max-width: 480px) {
-            .desktop-icon { width: 55px; }
-            .desktop-icon .icon { font-size: 28px; }
-            .taskbar { height: 50px; }
-        }
+        /* Subscription */
+        .plan-selector { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .plan-card { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 16px; text-align: center; cursor: pointer; }
+        .plan-card.selected { border-color: #28a745; background: #e8f5e9; }
+        
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 40px; z-index: 3000; font-size: 14px; text-align: center; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        
+        @media (max-width: 600px) { .desktop-icon { width: 65px; } .desktop-icon .icon { font-size: 36px; } .window { width: 92%; } }
     </style>
 </head>
 <body>
 
-<div class="taskbar">
-    <div class="taskbar-left">
-        <div class="start-menu" id="startMenu">☁️ V8.3</div>
-        <div class="nav-btn" id="navBack" title="رجوع داخلي">◀</div>
-        <div class="nav-btn" id="navForward" title="تقدم داخلي">▶</div>
-        <div class="nav-btn" id="navRefresh" title="تحديث">🔄</div>
-        <div class="theme-toggle" id="themeToggle">🌙</div>
+<!-- Admin Badge (يظهر فقط للمشرف) -->
+<div id="adminBadge" class="admin-badge" style="display:none;" onclick="openAdminPanel()">👑 Admin</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel" class="admin-panel">
+    <div class="admin-header">
+        <h2>👑 لوحة تحكم المشرف</h2>
+        <p>إدارة المستخدمين والإحصائيات</p>
+        <button onclick="closeAdminPanel()" style="position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 20px;">✕</button>
     </div>
-    <div class="taskbar-right">
-        <div id="batteryStatus">🔋 --%</div>
-        <div id="networkStatus">📶 Online</div>
-        <div id="clock"></div>
+    <div class="admin-stats">
+        <div class="stat-card"><div style="font-size: 28px;" id="totalUsers">0</div><div>مستخدمين</div></div>
+        <div class="stat-card"><div style="font-size: 28px;" id="proUsers">0</div><div>Pro</div></div>
+        <div class="stat-card"><div style="font-size: 28px;" id="totalWindows">0</div><div>نوافذ</div></div>
+    </div>
+    <div id="usersList" style="padding: 0 20px 20px 20px;"></div>
+</div>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-container">
+    <div class="login-box">
+        <h1>☁️ V8 Cloud OS</h1>
+        <div id="loginForm">
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" class="login-input">
+            <input type="password" id="loginPassword" placeholder="كلمة المرور" class="login-input">
+            <button onclick="handleLogin()" class="login-btn">🚀 دخول</button>
+            <p class="switch-auth" onclick="showRegister()">ليس لديك حساب؟ سجل الآن</p>
+        </div>
+        <div id="registerForm" style="display:none">
+            <input type="text" id="regName" placeholder="الاسم" class="login-input">
+            <input type="email" id="regEmail" placeholder="البريد" class="login-input">
+            <input type="password" id="regPassword" placeholder="كلمة المرور" class="login-input">
+            <button onclick="handleRegister()" class="login-btn">تسجيل</button>
+            <p class="switch-auth" onclick="showLogin()">لديك حساب؟ سجل دخول</p>
+        </div>
     </div>
 </div>
 
-<div class="desktop-icons" id="desktopIcons"></div>
-<div id="windowsContainer"></div>
+<!-- Desktop -->
+<div id="desktop" style="display:none">
+    <div class="taskbar">
+        <div class="start-menu" onclick="showNotification('V8 Cloud OS ☁️')">☁️ V8</div>
+        <div id="clock"></div>
+    </div>
+    <div class="desktop-icons" id="desktopIcons"></div>
+    <div id="windowsContainer"></div>
+</div>
 
 <script>
-// ============================================
-// V8.3 UNIFIED KERNEL - SINGLE SOURCE OF TRUTH
-// ============================================
-
-// ---------- 1. Event Bus ----------
-class V8EventBus {
-    constructor() {
-        this.events = new Map();
+    // ==================== SUPABASE CONFIGURATION ====================
+    // 🔴 غيّر هذه القيم بمعلومات مشروعك من Supabase
+    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_KEY = 'YOUR_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // ==================== GLOBAL VARIABLES ====================
+    let currentUser = null;
+    let currentSubscription = 'free';
+    let windows = [];
+    let nextZ = 100;
+    let dragTarget = null;
+    let dragOffset = {x:0, y:0};
+    
+    // خطط الاشتراك
+    const PLANS = {
+        free: { name: 'مجاني', price: 0, maxApps: 3, color: '#6c757d' },
+        pro: { name: 'Pro', price: 9.99, maxApps: 10, color: '#28a745' },
+        business: { name: 'Business', price: 49.99, maxApps: 999, color: '#007bff' }
+    };
+    
+    // ==================== NOTIFICATION ====================
+    function showNotification(msg, type='info') {
+        const n = document.createElement('div');
+        n.className = 'notification';
+        n.textContent = msg;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 2500);
     }
     
-    on(event, handler) {
-        if (!this.events.has(event)) this.events.set(event, []);
-        this.events.get(event).push(handler);
-        return () => this.off(event, handler);
-    }
-    
-    off(event, handler) {
-        if (!this.events.has(event)) return;
-        const handlers = this.events.get(event);
-        const index = handlers.indexOf(handler);
-        if (index !== -1) handlers.splice(index, 1);
-    }
-    
-    emit(event, data) {
-        if (!this.events.has(event)) return;
-        this.events.get(event).forEach(handler => handler(data));
-    }
-    
-    once(event, handler) {
-        const wrapper = (data) => {
-            handler(data);
-            this.off(event, wrapper);
-        };
-        this.on(event, wrapper);
-    }
-}
-
-// ---------- 2. Storage Manager (IndexedDB) ----------
-class V8Storage {
-    constructor() {
-        this.db = null;
-        this.ready = false;
-        this.queue = [];
-    }
-    
-    async init() {
-        if (this.ready) return true;
+    // ==================== AUTHENTICATION ====================
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
         
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('v8_unified_db', 2);
-            
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => {
-                this.db = request.result;
-                this.ready = true;
-                this.processQueue();
-                resolve(true);
-            };
-            
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains('app_data')) {
-                    db.createObjectStore('app_data', { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains('images')) {
-                    db.createObjectStore('images', { keyPath: 'id', autoIncrement: true });
-                }
-                if (!db.objectStoreNames.contains('settings')) {
-                    db.createObjectStore('settings', { keyPath: 'key' });
-                }
-                console.log('✅ IndexedDB stores created');
-            };
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { showNotification('❌ ' + error.message, 'error'); return; }
+        
+        currentUser = data.user;
+        localStorage.setItem('v8_user', JSON.stringify(currentUser));
+        
+        // جلب الاشتراك
+        const { data: sub } = await supabase.from('subscriptions').select('plan').eq('user_id', currentUser.id).single();
+        currentSubscription = sub?.plan || 'free';
+        
+        showNotification(`✅ مرحباً ${currentUser.email}`, 'success');
+        showDesktop();
+        loadUserWindows();
+        
+        // إظهار زر المشرف للمشرفين
+        if (currentUser.email === 'admin@v8.com') {
+            document.getElementById('adminBadge').style.display = 'block';
+        }
+    }
+    
+    async function handleRegister() {
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        
+        const { data, error } = await supabase.auth.signUp({ 
+            email, password,
+            options: { data: { name, subscription: 'free' } }
         });
-    }
-    
-    processQueue() {
-        this.queue.forEach(task => task());
-        this.queue = [];
-    }
-    
-    async get(store, id) {
-        if (!this.ready) {
-            await this.init();
-        }
-        return new Promise((resolve, reject) => {
-            const tx = this.db.transaction([store], 'readonly');
-            const req = tx.objectStore(store).get(id);
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
-        });
-    }
-    
-    async set(store, data) {
-        if (!this.ready) {
-            await this.init();
-        }
-        return new Promise((resolve, reject) => {
-            const tx = this.db.transaction([store], 'readwrite');
-            const req = tx.objectStore(store).put(data);
-            req.onsuccess = () => resolve(data);
-            req.onerror = () => reject(req.error);
-        });
-    }
-    
-    async getAll(store) {
-        if (!this.ready) await this.init();
-        return new Promise((resolve, reject) => {
-            const tx = this.db.transaction([store], 'readonly');
-            const req = tx.objectStore(store).getAll();
-            req.onsuccess = () => resolve(req.result || []);
-            req.onerror = () => reject(req.error);
-        });
-    }
-    
-    async delete(store, id) {
-        if (!this.ready) await this.init();
-        return new Promise((resolve, reject) => {
-            const tx = this.db.transaction([store], 'readwrite');
-            const req = tx.objectStore(store).delete(id);
-            req.onsuccess = () => resolve(true);
-            req.onerror = () => reject(req.error);
-        });
-    }
-}
-
-// ---------- 3. App Registry (Single Source of Truth) ----------
-class V8AppRegistry {
-    constructor(eventBus) {
-        this.eventBus = eventBus;
-        this.apps = new Map();
-        this.instances = new Map();
-    }
-    
-    register(appId, config) {
-        if (this.apps.has(appId)) {
-            console.warn(`App ${appId} already registered`);
-            return false;
-        }
+        if (error) { showNotification('❌ ' + error.message, 'error'); return; }
         
-        this.apps.set(appId, {
-            id: appId,
-            name: config.name,
-            icon: config.icon,
-            component: config.component,
-            initialState: config.initialState || {},
-            permissions: config.permissions || ['read']
-        });
+        // إنشاء اشتراك مجاني للمستخدم الجديد
+        await supabase.from('subscriptions').insert([{ user_id: data.user.id, plan: 'free' }]);
         
-        this.eventBus.emit('app:registered', { appId, name: config.name });
-        console.log(`✅ App registered: ${config.name}`);
-        return true;
+        showNotification('✅ تم التسجيل بنجاح', 'success');
+        showLogin();
     }
     
-    getApp(appId) {
-        return this.apps.get(appId);
+    function showRegister() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
     }
     
-    getAllApps() {
-        return Array.from(this.apps.values());
+    function showLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
     }
     
-    createInstance(appId, windowId, props = {}) {
-        const app = this.apps.get(appId);
-        if (!app || !app.component) {
-            console.error(`App ${appId} has no component`);
-            return null;
-        }
+    function showDesktop() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('desktop').style.display = 'block';
+        updateClock();
+        setInterval(updateClock, 1000);
+        loadDesktopIcons();
+    }
+    
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+    }
+    
+    function logout() {
+        supabase.auth.signOut();
+        localStorage.removeItem('v8_user');
+        location.reload();
+    }
+    
+    // ==================== APPS ====================
+    const apps = [
+        { name: 'notes', display: '📝 مفكرة', icon: '📝' },
+        { name: 'calculator', display: '🔢 حاسبة', icon: '🔢' },
+        { name: 'browser', display: '🌐 متصفح', icon: '🌐' },
+        { name: 'files', display: '📁 ملفات', icon: '📁' },
+        { name: 'subscription', display: '💎 اشتراك', icon: '💎' },
+        { name: 'settings', display: '⚙️ إعدادات', icon: '⚙️' }
+    ];
+    
+    function loadDesktopIcons() {
+        const container = document.getElementById('desktopIcons');
+        let displayApps = apps;
+        if (currentSubscription === 'free') displayApps = apps.slice(0, 3);
         
-        const instance = new app.component(windowId, props);
-        instance.appId = appId;
-        instance.windowId = windowId;
-        this.instances.set(`${appId}_${windowId}`, instance);
-        return instance;
+        container.innerHTML = displayApps.map(app => `
+            <div class="desktop-icon" onclick="openApp('${app.name}')">
+                <div class="icon">${app.icon}</div>
+                <div class="label">${app.display}</div>
+            </div>
+        `).join('');
+        
+        container.innerHTML += `<div class="desktop-icon" onclick="openAppStore()"><div class="icon">🛒</div><div class="label">متجر</div></div>`;
+        
+        // عرض خطة المستخدم
+        const plan = PLANS[currentSubscription];
+        container.innerHTML += `<div class="desktop-icon" style="border:2px solid ${plan.color}"><div class="icon">${plan.name === 'free' ? '🆓' : '💎'}</div><div class="label">${plan.name}</div></div>`;
     }
     
-    getInstance(appId, windowId) {
-        return this.instances.get(`${appId}_${windowId}`);
-    }
-    
-    destroyInstance(appId, windowId) {
-        const instance = this.instances.get(`${appId}_${windowId}`);
-        if (instance && instance.destroy) {
-            instance.destroy();
-        }
-        this.instances.delete(`${appId}_${windowId}`);
-    }
-}
-
-// ---------- 4. Window Manager (Kernel Controlled) ----------
-class V8WindowManager {
-    constructor(eventBus, appRegistry) {
-        this.eventBus = eventBus;
-        this.appRegistry = appRegistry;
-        this.windows = new Map();
-        this.nextZIndex = 100;
-        this.windowCounter = 0;
-        this.activeDrag = null;
-    }
-    
-    createWindow(appId, options = {}) {
-        const app = this.appRegistry.getApp(appId);
-        if (!app) {
-            console.error(`App ${appId} not found`);
-            return null;
-        }
-        
-        const windowId = `win_${appId}_${++this.windowCounter}_${Date.now()}`;
-        const windowConfig = {
-            id: windowId,
-            appId: appId,
-            title: options.title || app.name,
-            x: options.x || 50 + (this.windows.size * 20),
-            y: options.y || 80 + (this.windows.size * 15),
-            width: options.width || 420,
-            height: options.height || 450,
-            zIndex: this.nextZIndex++,
-            isMinimized: false,
-            element: null,
-            contentElement: null,
-            instance: null
-        };
-        
-        // إنشاء مثيل التطبيق
-        const instance = this.appRegistry.createInstance(appId, windowId, options.props || {});
-        if (instance) {
-            windowConfig.instance = instance;
-        }
-        
-        this.windows.set(windowId, windowConfig);
-        this.renderWindow(windowConfig);
-        this.eventBus.emit('window:created', { windowId, appId });
-        
-        return windowId;
-    }
-    
-    renderWindow(config) {
-        const existing = document.getElementById(config.id);
-        if (existing) existing.remove();
+    function openApp(appName) {
+        const winId = Date.now();
+        const saved = getSavedWindowState(appName);
         
         const winHtml = `
-            <div id="${config.id}" class="window" style="left:${config.x}px; top:${config.y}px; width:${config.width}px; min-height:${config.height}px; z-index:${config.zIndex}">
-                <div class="window-header" onmousedown="v8WindowManager.startDrag(event, '${config.id}')" ontouchstart="v8WindowManager.startDrag(event, '${config.id}')">
-                    <div class="window-title">
-                        <span>${config.title}</span>
-                    </div>
-                    <div class="window-buttons">
-                        <div class="window-close" onclick="v8WindowManager.closeWindow('${config.id}')">✕</div>
-                    </div>
+            <div id="win-${winId}" class="window" style="left:${saved?.x || 50}px; top:${saved?.y || 100}px; z-index:${nextZ++}">
+                <div class="window-header" onmousedown="startDrag(event, 'win-${winId}', '${appName}')">
+                    <span>${apps.find(a=>a.name===appName)?.display || appName}</span>
+                    <div class="window-close" onclick="closeWindow('win-${winId}', '${appName}')">✕</div>
                 </div>
-                <div class="window-content" id="content-${config.id}">
+                <div class="window-content" id="content-${winId}">
                     <div style="text-align:center; padding:20px;">⏳ جاري التحميل...</div>
                 </div>
             </div>
         `;
-        
         document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
-        config.element = document.getElementById(config.id);
-        config.contentElement = document.getElementById(`content-${config.id}`);
         
-        // عرض محتوى التطبيق
-        if (config.instance && config.instance.render) {
-            const html = config.instance.render();
-            if (html) config.contentElement.innerHTML = html;
-            if (config.instance.bindEvents) {
-                setTimeout(() => config.instance.bindEvents(), 50);
-            }
-        }
-        
-        this.bringToFront(config.id);
+        const content = document.getElementById(`content-${winId}`);
+        renderApp(content, appName);
+        windows.push({ id: `win-${winId}`, name: appName, element: document.getElementById(`win-${winId}`) });
     }
     
-    updateWindowContent(windowId) {
-        const config = this.windows.get(windowId);
-        if (config && config.instance && config.instance.render && config.contentElement) {
-            const html = config.instance.render();
-            config.contentElement.innerHTML = html;
-            if (config.instance.bindEvents) {
-                setTimeout(() => config.instance.bindEvents(), 50);
-            }
+    function renderApp(container, appName) {
+        if (appName === 'notes') {
+            const saved = localStorage.getItem('notes_content') || '';
+            container.innerHTML = `
+                <textarea id="notes-area" style="width:100%; height:180px; padding:12px; border:1px solid #ddd; border-radius:16px; font-family:inherit;">${saved}</textarea>
+                <button onclick="saveNotes()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>
+            `;
+            window.saveNotes = () => {
+                const content = document.getElementById('notes-area').value;
+                localStorage.setItem('notes_content', content);
+                showNotification('✅ تم حفظ الملاحظات');
+            };
+        }
+        else if (appName === 'calculator') {
+            container.innerHTML = `
+                <input type="text" id="calc-display" readonly style="width:100%; padding:15px; font-size:28px; text-align:left; border:1px solid #ddd; border-radius:16px; margin-bottom:12px;">
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+                    ${'789/456*123-0.=+'.split('').map(btn => `<button onclick="calcPress('${btn}')" style="padding:18px; font-size:20px; border:1px solid #ddd; border-radius:16px; background:#f5f5f5;">${btn}</button>`).join('')}
+                    <button onclick="calcPress('C')" style="padding:18px; background:#dc3545; color:white; border:none; border-radius:16px;">C</button>
+                </div>
+            `;
+            let calcStr = '';
+            window.calcPress = (val) => {
+                const display = document.getElementById('calc-display');
+                if(val === '=') { try { calcStr = eval(calcStr).toString(); display.value = calcStr; } catch(e) { display.value = 'Error'; calcStr = ''; } }
+                else if(val === 'C') { calcStr = ''; display.value = ''; }
+                else { calcStr += val; display.value = calcStr; }
+            };
+        }
+        else if (appName === 'browser') {
+            container.innerHTML = `
+                <input type="text" id="browser-url" placeholder="https://google.com" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #ddd; border-radius:16px;">
+                <button onclick="loadWeb()" style="width:100%; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px; margin-bottom:12px;">🔍 بحث</button>
+                <iframe id="browser-frame" style="width:100%; height:200px; border:1px solid #ddd; border-radius:16px;"></iframe>
+            `;
+            window.loadWeb = () => {
+                const url = document.getElementById('browser-url').value;
+                document.getElementById('browser-frame').src = url.startsWith('http') ? url : 'https://' + url;
+            };
+        }
+        else if (appName === 'files') {
+            const files = JSON.parse(localStorage.getItem('user_files') || '[]');
+            container.innerHTML = `
+                <button onclick="addFile()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ ملف جديد</button>
+                <div style="border:1px solid #ddd; border-radius:16px; padding:12px;">
+                    ${files.map(f => `<div style="padding:10px; border-bottom:1px solid #eee;">📄 ${f.name}</div>`).join('')}
+                    ${files.length === 0 ? '<p style="color:#999;">لا توجد ملفات</p>' : ''}
+                </div>
+            `;
+            window.addFile = () => {
+                const name = prompt('اسم الملف:');
+                if(name) {
+                    const files = JSON.parse(localStorage.getItem('user_files') || '[]');
+                    files.push({ name, created: new Date() });
+                    localStorage.setItem('user_files', JSON.stringify(files));
+                    openApp('files');
+                    showNotification('✅ تم إنشاء الملف');
+                }
+            };
+        }
+        else if (appName === 'subscription') {
+            container.innerHTML = `
+                <h3 style="margin-bottom:15px;">💎 خطة الاشتراك الحالية</h3>
+                <div style="background:#f8f9fa; padding:15px; border-radius:16px; margin-bottom:20px;">
+                    <div style="font-size:24px;">${PLANS[currentSubscription].name}</div>
+                    <div>$${PLANS[currentSubscription].price}/شهر</div>
+                    <div>التطبيقات: ${PLANS[currentSubscription].maxApps === 999 ? 'غير محدود' : PLANS[currentSubscription].maxApps}</div>
+                </div>
+                <h4>ترقية خطتك</h4>
+                <div class="plan-selector">
+                    ${Object.entries(PLANS).map(([key, plan]) => `
+                        <div class="plan-card ${currentSubscription === key ? 'selected' : ''}" onclick="selectPlan('${key}')">
+                            <div style="font-size:20px;">${plan.name}</div>
+                            <div>$${plan.price}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="upgradePlan()" style="width:100%; padding:14px; background:linear-gradient(135deg,#28a745,#20c997); color:white; border:none; border-radius:16px; margin-top:15px;">💳 ترقية الآن</button>
+            `;
+            window.selectPlan = (plan) => { currentSubscription = plan; openApp('subscription'); };
+            window.upgradePlan = () => { showNotification('🔜 نظام الدفع قريباً - حالياً تجريبي', 'info'); };
+        }
+        else if (appName === 'settings') {
+            container.innerHTML = `
+                <div>
+                    <div style="margin:10px 0;">👤 ${currentUser?.email}</div>
+                    <div style="margin:10px 0;">💎 ${PLANS[currentSubscription].name}</div>
+                    <button onclick="logout()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🚪 تسجيل خروج</button>
+                </div>
+            `;
         }
     }
     
-    bringToFront(windowId) {
-        const config = this.windows.get(windowId);
-        if (config) {
-            config.zIndex = this.nextZIndex++;
-            if (config.element) config.element.style.zIndex = config.zIndex;
-        }
+    function openAppStore() {
+        const storeApps = [
+            { name: 'calendar', display: '📅 تقويم', icon: '📅' },
+            { name: 'email', display: '📧 بريد', icon: '📧' },
+            { name: 'chat', display: '💬 دردشة', icon: '💬' }
+        ];
+        const installed = apps.map(a => a.name);
+        const available = storeApps.filter(a => !installed.includes(a.name));
+        
+        const winId = Date.now();
+        const winHtml = `
+            <div id="win-${winId}" class="window" style="left:60px; top:120px; z-index:${nextZ++}">
+                <div class="window-header" onmousedown="startDrag(event, 'win-${winId}', 'store')">
+                    <span>🛒 متجر التطبيقات</span>
+                    <div class="window-close" onclick="closeWindow('win-${winId}', 'store')">✕</div>
+                </div>
+                <div class="window-content">
+                    <h3>تطبيقات متاحة</h3>
+                    ${available.map(app => `
+                        <div style="border:1px solid #ddd; border-radius:16px; padding:15px; margin:10px 0; display:flex; justify-content:space-between; align-items:center;">
+                            <div><span style="font-size:28px;">${app.icon}</span> ${app.display}</div>
+                            <button onclick="installApp('${app.name}', '${app.display}', '${app.icon}')" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:12px;">تثبيت</button>
+                        </div>
+                    `).join('')}
+                    ${available.length === 0 ? '<p style="text-align:center; padding:20px;">جميع التطبيقات مثبتة ✅</p>' : ''}
+                    ${currentSubscription === 'free' && apps.length >= 3 ? '<p style="color:#dc3545; text-align:center;">⚠️ للترقية إلى Pro لتحصل على تطبيقات إضافية</p>' : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
+        windows.push({ id: `win-${winId}`, name: 'store', element: document.getElementById(`win-${winId}`) });
     }
     
-    closeWindow(windowId) {
-        const config = this.windows.get(windowId);
-        if (!config) return;
-        
-        if (config.instance && config.instance.destroy) {
-            config.instance.destroy();
+    function installApp(name, display, icon) {
+        if (currentSubscription === 'free' && apps.length >= 3) {
+            showNotification('⚠️ للترقية إلى Pro لتثبيت تطبيقات إضافية', 'error');
+            return;
         }
-        
-        if (config.element) config.element.remove();
-        this.appRegistry.destroyInstance(config.appId, windowId);
-        this.windows.delete(windowId);
-        this.eventBus.emit('window:closed', { windowId, appId: config.appId });
+        apps.push({ name, display, icon });
+        loadDesktopIcons();
+        showNotification(`✅ تم تثبيت ${display}`);
     }
     
-    startDrag(event, windowId) {
-        event.preventDefault();
-        const config = this.windows.get(windowId);
-        if (!config || !config.element) return;
-        
-        this.bringToFront(windowId);
-        
-        const rect = config.element.getBoundingClientRect();
+    // ==================== WINDOW MANAGEMENT ====================
+    function startDrag(event, winId, appName) {
+        dragTarget = windows.find(w => w.id === winId);
+        if(!dragTarget) return;
+        const rect = dragTarget.element.getBoundingClientRect();
         const clientX = event.touches ? event.touches[0].clientX : event.clientX;
         const clientY = event.touches ? event.touches[0].clientY : event.clientY;
-        const offsetX = clientX - rect.left;
-        const offsetY = clientY - rect.top;
-        
-        this.activeDrag = { config, offsetX, offsetY };
+        dragOffset.x = clientX - rect.left;
+        dragOffset.y = clientY - rect.top;
         
         const onMove = (e) => {
-            if (!this.activeDrag) return;
-            e.preventDefault();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            let newX = cx - this.activeDrag.offsetX;
-            let newY = cy - this.activeDrag.offsetY;
-            
-            newX = Math.max(0, Math.min(newX, window.innerWidth - config.element.offsetWidth));
-            newY = Math.max(0, Math.min(newY, window.innerHeight - config.element.offsetHeight - 55));
-            
-            config.element.style.left = newX + 'px';
-            config.element.style.top = newY + 'px';
-            config.x = newX;
-            config.y = newY;
+            if(!dragTarget) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY =e.touches ? e.touches[0].clientY : e.clientY;
+            const newX = clientX - dragOffset.x;
+            const newY = clientY - dragOffset.y;
+            dragTarget.element.style.left = `${Math.max(0, newX)}px`;
+            dragTarget.element.style.top = `${Math.max(0, newY)}px`;
+            saveWindowState(appName, {x: newX, y: newY});
         };
-        
-        const onStop = () => {
-            this.activeDrag = null;
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onStop);
-            document.removeEventListener('touchmove', onMove);
-            document.removeEventListener('touchend', onStop);
-        };
-        
+        const onStop = () => { dragTarget = null; };
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onStop);
         document.addEventListener('touchmove', onMove);
         document.addEventListener('touchend', onStop);
     }
     
-    getAllWindows() {
-        return Array.from(this.windows.values());
-    }
-}
-
-// ---------- 5. Internal Navigation Stack ----------
-class V8NavigationStack {
-    constructor(eventBus, windowManager) {
-        this.eventBus = eventBus;
-        this.windowManager = windowManager;
-        this.history = [];
-        this.currentIndex = -1;
+    function closeWindow(winId, appName) {
+        const win = windows.find(w => w.id === winId);
+        if(win) { win.element.remove(); windows = windows.filter(w => w.id !== winId); }
     }
     
-    push(state) {
-        this.history = this.history.slice(0, this.currentIndex + 1);
-        this.history.push(state);
-        this.currentIndex++;
-        this.eventBus.emit('navigation:changed', { canGoBack: this.canGoBack(), canGoForward: this.canGoForward() });
+    function getSavedWindowState(appName) {
+        const saved = localStorage.getItem(`win_${appName}`);
+        return saved ? JSON.parse(saved) : null;
     }
     
-    back() {
-        if (this.canGoBack()) {
-            this.currentIndex--;
-            const state = this.history[this.currentIndex];
-            this.eventBus.emit('navigation:back', state);
-            return state;
-        }
-        return null;
-    }
-    
-    forward() {
-        if (this.canGoForward()) {
-            this.currentIndex++;
-            const state = this.history[this.currentIndex];
-            this.eventBus.emit('navigation:forward', state);
-            return state;
-        }
-        return null;
-    }
-    
-    canGoBack() { return this.currentIndex > 0; }
-    canGoForward() { return this.currentIndex < this.history.length - 1; }
-    
-    getCurrent() { return this.history[this.currentIndex]; }
-}
-
-// ---------- 6. تطبيقات النظام (Components) ----------
-
-// 6.1 مفكرة
-class NotesComponent {
-    constructor(windowId, props) {
-        this.windowId = windowId;
-        this.props = props;
-        this.content = localStorage.getItem('notes_content') || '';
-    }
-    
-    render() {
-        return `
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <textarea id="notes-${this.windowId}" style="width:100%; height:200px; padding:12px; border:1px solid #ddd; border-radius:16px;">${this.content}</textarea>
-                <button id="save-${this.windowId}" style="padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:12px;">💾 حفظ</button>
-            </div>
-        `;
-    }
-    
-    bindEvents() {
-        const saveBtn = document.getElementById(`save-${this.windowId}`);
-        const textarea = document.getElementById(`notes-${this.windowId}`);
-        
-        if (saveBtn) {
-            saveBtn.onclick = () => {
-                this.content = textarea.value;
-                localStorage.setItem('notes_content', this.content);
-                v8.eventBus.emit('notification', { message: '✅ تم حفظ الملاحظات', type: 'success' });
-            };
+    function saveWindowState(appName, state) {
+        localStorage.setItem(`win_${appName}`, JSON.stringify(state));
+        if (currentUser) {
+            supabase.from('windows').upsert({ user_id: currentUser.id, app_name: appName, state_json: state });
         }
     }
     
-    destroy() {
-        // تنظيف
-    }
-}
-
-// 6.2 حاسبة
-class CalculatorComponent {
-    constructor(windowId, props) {
-        this.windowId = windowId;
-        this.value = '0';
-        this.previousValue = 0;
-        this.operator = null;
-        this.waitingForOperand = false;
-    }
-    
-    render() {
-        return `
-            <div>
-                <input id="calc-display-${this.windowId}" type="text" readonly value="${this.value}" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px; margin-bottom:12px;">
-                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
-                    ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(b => `
-                        <button class="calc-btn-${this.windowId}" data-value="${b}" style="padding:12px; border:1px solid #ddd; border-radius:12px; background:#f5f5f5; cursor:pointer;">${b}</button>
-                    `).join('')}
-                    <button id="calc-clear-${this.windowId}" style="padding:12px; background:#dc3545; color:white; border:none; border-radius:12px; cursor:pointer;">C</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    bindEvents() {
-        const btns = document.querySelectorAll(`.calc-btn-${this.windowId}`);
-        btns.forEach(btn => {
-            btn.onclick = () => this.handleInput(btn.getAttribute('data-value'));
-        });
-        
-        const clearBtn = document.getElementById(`calc-clear-${this.windowId}`);
-        if (clearBtn) clearBtn.onclick = () => this.clear();
-    }
-    
-    handleInput(val) {
-        const display = document.getElementById(`calc-display-${this.windowId}`);
-        if (val >= '0' && val <= '9') {
-            if (this.waitingForOperand) {
-                this.value = val;
-                this.waitingForOperand = false;
-            } else {
-                this.value = this.value === '0' ? val : this.value + val;
-            }
-        } else if (val === '.') {
-            if (!this.value.includes('.')) this.value += '.';
-        } else if (val === '+' || val === '-' || val === '*' || val === '/') {
-            const current = parseFloat(this.value);
-            if (this.operator && !this.waitingForOperand) {
-                this.calculate();
-            }
-            this.previousValue = parseFloat(this.value);
-            this.operator = val;
-            this.waitingForOperand = true;
-        } else if (val === '=') {
-            this.calculate();
-            this.operator = null;
-            this.waitingForOperand = true;
-        }
-        
-        if (display) display.value = this.value;
-    }
-    
-    calculate() {
-        const current = parseFloat(this.value);
-        let result = 0;
-        switch (this.operator) {
-            case '+': result = this.previousValue + current; break;
-            case '-': result = this.previousValue - current; break;
-            case '*': result = this.previousValue * current; break;
-            case '/': result = this.previousValue / current; break;
-            default: return;
-        }
-        this.value = result.toString();
-        if (this.value === 'Infinity') this.value = 'خطأ';
-        if (this.value === 'NaN') this.value = '0';
-    }
-    
-    clear() {
-        this.value = '0';
-        this.previousValue = 0;
-        this.operator = null;
-        this.waitingForOperand = false;
-        const display = document.getElementById(`calc-display-${this.windowId}`);
-        if (display) display.value = this.value;
-    }
-    
-    destroy() {}
-}
-
-// 6.3 إعدادات
-class SettingsComponent {
-    constructor(windowId, props) {
-        this.windowId = windowId;
-    }
-    
-    render() {
-        const totalSize = this.calculateStorageSize();
-        return `
-            <div>
-                <div style="margin:15px 0;">⚙️ إعدادات V8.3</div>
-                <div style="margin:15px 0;">💾 التخزين: ${totalSize} MB</div>
-                <div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode') ? 'نهار ☀️' : 'ليل 🌙'}</div>
-                <button id="clear-data-${this.windowId}" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
-                <button id="close-all-${this.windowId}" style="width:100%; padding:14px; background:#667eea; color:white; border:none; border-radius:16px; margin-top:10px;">❌ إغلاق جميع النوافذ</button>
-            </div>
-        `;
-    }
-    
-    calculateStorageSize() {
-        let total = 0;
-        for(let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            total += (key.length + (localStorage.getItem(key) || '').length) * 2;
-        }
-        return (total / 1048576).toFixed(2);
-    }
-    
-    bindEvents() {
-        const clearBtn = document.getElementById(`clear-data-${this.windowId}`);
-        if (clearBtn) {
-            clearBtn.onclick = () => {
-                if (confirm('مسح جميع البيانات؟')) {
-                    localStorage.clear();
-                    v8.eventBus.emit('notification', { message: '✅ تم مسح البيانات', type: 'success' });
-                    setTimeout(() => location.reload(), 1000);
-                }
-            };
-        }
-        
-        const closeAllBtn = document.getElementById(`close-all-${this.windowId}`);
-        if (closeAllBtn) {
-            closeAllBtn.onclick = () => {
-                const windows = v8.windowManager.getAllWindows();
-                windows.forEach(win => v8.windowManager.closeWindow(win.id));
-                v8.eventBus.emit('notification', { message: '✅ تم إغلاق جميع النوافذ', type: 'success' });
-            };
-        }
-    }
-    
-    destroy() {}
-}
-
-// ---------- 7. UI Renderer (View Only) ----------
-class V8UIRenderer {
-    constructor(appRegistry, windowManager, eventBus) {
-        this.appRegistry = appRegistry;
-        this.windowManager = windowManager;
-        this.eventBus = eventBus;
-    }
-    
-    renderDesktopIcons() {
-        const container = document.getElementById('desktopIcons');
-        const apps = this.appRegistry.getAllApps();
-        
-        container.innerHTML = apps.map(app => `
-            <div class="desktop-icon" data-app-id="${app.id}">
-                <div class="icon">${app.icon}</div>
-                <div class="label">${app.name}</div>
-            </div>
-        `).join('');
-        
-        // ربط الأحداث
-        document.querySelectorAll('.desktop-icon').forEach(icon => {
-            icon.onclick = () => {
-                const appId = icon.getAttribute('data-app-id');
-                this.windowManager.createWindow(appId);
-                this.eventBus.emit('notification', { message: `🚀 فتح ${appId}`, type: 'info' });
-            };
-        });
-    }
-    
-    updateClock() {
-        const update = () => {
-            const now = new Date();
-            document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
-        };
-        update();
-        setInterval(update, 1000);
-    }
-    
-    initBattery() {
-        if ('getBattery' in navigator) {
-            navigator.getBattery().then(battery => {
-                const update = () => {
-                    const level = Math.round(battery.level * 100);
-                    document.getElementById('batteryStatus').innerHTML = battery.charging ? `⚡ ${level}%` : `🔋 ${level}%`;
-                };
-                update();
-                battery.addEventListener('levelchange', update);
-                battery.addEventListener('chargingchange', update);
+    async function loadUserWindows() {
+        if (!currentUser) return;
+        const { data } = await supabase.from('windows').select('*').eq('user_id', currentUser.id);
+        if (data) {
+            data.forEach(win => {
+                localStorage.setItem(`win_${win.app_name}`, JSON.stringify(win.state_json));
             });
         }
     }
     
-    initNetwork() {
-        const update = () => {
-            document.getElementById('networkStatus').innerHTML = navigator.onLine ? '📶 Online' : '📡 Offline';
-        };
-        update();
-        window.addEventListener('online', update);
-        window.addEventListener('offline', update);
-    }
-    
-    initTheme() {
-        const btn = document.getElementById('themeToggle');
-        btn.onclick = () => {
-            document.body.classList.toggle('light-mode');
-            btn.innerHTML = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
-            this.eventBus.emit('notification', { message: document.body.classList.contains('light-mode') ? '✅ وضع النهار' : '✅ وضع الليل', type: 'success' });
-        };
-    }
-    
-    initStartMenu() {
-        document.getElementById('startMenu').onclick = () => {
-            this.eventBus.emit('notification', { message: '☁️ V8.3 Cloud OS - Unified Kernel', type: 'info' });
-        };
-    }
-    
-    initNavigation() {
-        document.getElementById('navBack').onclick = () => {
-            if (v8.navigation.canGoBack()) {
-                v8.navigation.back();
-                this.eventBus.emit('notification', { message: '◀ رجوع', type: 'info' });
-            } else {
-                this.eventBus.emit('notification', { message: 'لا توجد صفحة سابقة', type: 'warning' });
-            }
-        };
+    // ==================== ADMIN PANEL ====================
+    async function openAdminPanel() {
+        if (currentUser?.email !== 'admin@v8.com') return;
         
-        document.getElementById('navForward').onclick = () => {
-            if (v8.navigation.canGoForward()) {
-                v8.navigation.forward();
-                this.eventBus.emit('notification', { message: 'تقدم ▶', type: 'info' });
-            } else {
-                this.eventBus.emit('notification', { message: 'لا توجد صفحة تالية', type: 'warning' });
-            }
-        };
+        // جلب الإحصائيات
+        const { data: users } = await supabase.from('users').select('*');
+        const { data: subs } = await supabase.from('subscriptions').select('*');
+        const { data: windows } = await supabase.from('windows').select('*');
         
-        document.getElementById('navRefresh').onclick = () => {
-            location.reload();
-        };
-    }
-    
-    initNotifications() {
-        this.eventBus.on('notification', (data) => {
-            this.showNotification(data.message, data.type);
-        });
-    }
-    
-    showNotification(message, type = 'info') {
-        const colors = {
-            success: '#28a745', error: '#dc3545', warning: '#ffc107', info: '#667eea'
-        };
-        const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+        document.getElementById('totalUsers').textContent = users?.length || 0;
+        document.getElementById('proUsers').textContent = subs?.filter(s => s.plan === 'pro').length || 0;
+        document.getElementById('totalWindows').textContent = windows?.length || 0;
         
-        const n = document.createElement('div');
-        n.className = 'notification';
-        n.innerHTML = `${icons[type]} ${message}`;
-        n.style.borderRight = `4px solid ${colors[type]}`;
-        document.body.appendChild(n);
-        setTimeout(() => n.remove(), 2500);
+        document.getElementById('usersList').innerHTML = users?.map(u => `
+            <div class="user-item">
+                <div>👤 ${u.email}</div>
+                <div>${subs?.find(s=>s.user_id===u.id)?.plan || 'free'}</div>
+                <button onclick="deleteUser('${u.id}')" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">حذف</button>
+            </div>
+        `).join('');
+        
+        document.getElementById('adminPanel').classList.add('show');
     }
-}
-
-// ---------- 8. Kernel Initialization ----------
-const v8 = {
-    eventBus: new V8EventBus(),
-    appRegistry: null,
-    windowManager: null,
-    navigation: null,
-    storage: null,
-    ui: null
-};
-
-async function initV8() {
-    console.log('🚀 V8.3 Unified Kernel initializing...');
     
-    // تهيئة التخزين
-    v8.storage = new V8Storage();
-    await v8.storage.init();
+    function closeAdminPanel() {
+        document.getElementById('adminPanel').classList.remove('show');
+    }
     
-    // تهيئة المكونات الأساسية
-    v8.appRegistry = new V8AppRegistry(v8.eventBus);
-    v8.windowManager = new V8WindowManager(v8.eventBus, v8.appRegistry);
-    v8.navigation = new V8NavigationStack(v8.eventBus, v8.windowManager);
-    v8.ui = new V8UIRenderer(v8.appRegistry, v8.windowManager, v8.eventBus);
+    async function deleteUser(userId) {
+        if (confirm('حذف المستخدم؟')) {
+            await supabase.from('users').delete().eq('id', userId);
+            showNotification('✅ تم حذف المستخدم');
+            openAdminPanel();
+        }
+    }
     
-    // تسجيل التطبيقات
-    v8.appRegistry.register('notes', {
-        name: '📝 مفكرة',
-        icon: '📝',
-        component: NotesComponent
+    // ==================== SERVICE WORKER (PWA) ====================
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(console.log);
+    }
+    
+    // ==================== CHECK EXISTING SESSION ====================
+    const savedUser = localStorage.getItem('v8_user');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showDesktop();
+        loadUserWindows();
+        if (currentUser.email === 'admin@v8.com') document.getElementById('adminBadge').style.display = 'block';
+    }
+    
+    // Touch support
+    document.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.window-header')) {
+            const header = e.target.closest('.window-header');
+            const win = header.closest('.window');
+            const winId = win.id;
+            const appName = windows.find(w => w.id === winId)?.name;
+            if(appName) startDrag(e, winId, appName);
+        }
     });
-    
-    v8.appRegistry.register('calculator', {
-        name: '🔢 حاسبة',
-        icon: '🔢',
-        component: CalculatorComponent
-    });
-    
-    v8.appRegistry.register('settings', {
-        name: '⚙️ إعدادات',
-        icon: '⚙️',
-        component: SettingsComponent
-    });
-    
-    // تهيئة واجهة المستخدم
-    v8.ui.renderDesktopIcons();
-    v8.ui.updateClock();
-    v8.ui.initBattery();
-    v8.ui.initNetwork();
-    v8.ui.initTheme();
-    v8.ui.initStartMenu();
-    v8.ui.initNavigation();
-    v8.ui.initNotifications();
-    
-    // ربط الـ window manager للوصول العالمي
-    window.v8WindowManager = v8.windowManager;
-    
-    v8.eventBus.emit('notification', { message: '✨ V8.3 Unified Kernel جاهز', type: 'success' });
-    console.log('%c✅ V8.3 Unified Kernel Ready', 'color: #28a745; font-size: 14px; font-weight: bold;');
-    
-    return v8;
-}
+</script>
 
-// تشغيل النظام
-initV8();
+<!-- Service Worker File Content (لإنشاء sw.js) -->
+<script>
+    // هذا الكود يتم نسخه إلى ملف منفصل باسم sw.js
+    const swCode = `const CACHE_NAME = 'v8-cache-v1';
+const urlsToCache = ['/', '/index.html'];
+self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));`;
+    
+    // إنشاء Service Worker تلقائياً
+    if (!document.querySelector('#sw-created')) {
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = 'sw.js';
+        link.href = url;
+        link.click();
+    }
 </script>
 </body>
-    </html>
+</html>
