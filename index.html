@@ -2,18 +2,21 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>V8 Cloud OS | الإصدار 8.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>V8 Cloud OS | الإصدار 8.2</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             overflow: hidden;
+            height: 100vh;
+            width: 100vw;
         }
         /* وضع الليل/النهار */
         body.light-mode {
@@ -33,10 +36,7 @@
         body.light-mode .window {
             background: rgba(255,255,255,0.98);
         }
-        body.light-mode .notification {
-            background: #333;
-            color: white;
-        }
+        /* شريط المهام */
         .taskbar {
             position: fixed;
             bottom: 0;
@@ -49,93 +49,91 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 16px;
+            padding: 0 12px;
             z-index: 1000;
         }
         .taskbar-left {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
-        .start-menu {
+        .start-menu, .theme-toggle {
             background: rgba(255,255,255,0.15);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 12px;
             cursor: pointer;
-        }
-        .theme-toggle {
-            background: rgba(255,255,255,0.15);
-            padding: 8px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 18px;
+            font-size: 14px;
         }
         .taskbar-right {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
+            font-size: 12px;
         }
-        .battery-status, .network-status {
-            font-size: 14px;
-        }
+        /* سطح المكتب */
         .desktop-icons {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
+            z-index: 10;
         }
         .desktop-icon {
-            width: 85px;
+            width: 75px;
             text-align: center;
             cursor: pointer;
-            padding: 10px;
+            padding: 8px;
             border-radius: 16px;
             background: rgba(0,0,0,0.4);
             backdrop-filter: blur(5px);
             transition: all 0.2s;
         }
-        .desktop-icon:hover {
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.05);
+        .desktop-icon:active {
+            transform: scale(0.95);
         }
         .desktop-icon .icon {
-            font-size: 42px;
+            font-size: 38px;
         }
         .desktop-icon .label {
             color: white;
-            font-size: 11px;
-            margin-top: 5px;
+            font-size: 10px;
+            margin-top: 4px;
         }
+        /* النوافذ */
         .window {
             position: absolute;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 85%;
+            width: 90%;
             max-width: 450px;
             min-height: 400px;
+            max-height: 80vh;
             z-index: 100;
             display: flex;
             flex-direction: column;
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px);
+            transition: all 0.2s;
         }
         .window-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 14px;
+            padding: 12px;
             border-radius: 20px 20px 0 0;
             color: white;
             cursor: move;
             display: flex;
             justify-content: space-between;
+            touch-action: none;
         }
         .window-content {
-            padding: 20px;
+            padding: 15px;
             flex: 1;
             overflow: auto;
-            min-height: 300px;
+            min-height: 250px;
         }
         .window-close {
             cursor: pointer;
@@ -146,32 +144,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 16px;
         }
+        /* الإشعارات */
         .notification {
             position: fixed;
-            top: 20px;
+            top: 15px;
             left: 50%;
             transform: translateX(-50%);
             background: #333;
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 40px;
             z-index: 3000;
-            font-size: 14px;
+            font-size: 13px;
             text-align: center;
             animation: slideDown 0.3s ease;
+            max-width: 90%;
         }
         @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
-        /* تقويم */
+        /* التقويم */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -180,73 +175,96 @@
             margin-top: 10px;
         }
         .calendar-day {
-            padding: 10px;
+            padding: 8px;
             border-radius: 10px;
             cursor: pointer;
-        }
-        .calendar-day:hover {
-            background: #667eea;
-            color: white;
+            font-size: 14px;
         }
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
-        /* قائمة المهام */
+        /* المهام */
         .task-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #eee;
-        }
-        .task-item input {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
         }
         .task-item.completed span {
             text-decoration: line-through;
             color: #999;
         }
-        /* حاسبة محسنة */
+        /* الحاسبة */
         .calc-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
             margin-top: 15px;
         }
         .calc-btn {
-            padding: 15px;
-            font-size: 20px;
+            padding: 12px;
+            font-size: 18px;
             border: 1px solid #ddd;
             border-radius: 12px;
             background: #f5f5f5;
             cursor: pointer;
-            transition: all 0.2s;
+            text-align: center;
         }
-        .calc-btn:hover {
-            background: #667eea;
-            color: white;
+        /* معرض الصور */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
         }
-        .calc-btn.operator {
-            background: #667eea;
-            color: white;
+        .gallery-item {
+            background: #f0f0f0;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
         }
-        .calc-btn.equals {
-            background: #28a745;
-            color: white;
+        /* لوحة الرسم */
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            cursor: crosshair;
+            touch-action: none;
+            width: 100%;
+            height: auto;
+            background: white;
         }
-        .calc-btn.clear {
-            background: #dc3545;
-            color: white;
+        /* تحويل العملات */
+        .currency-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
-        @media (max-width: 600px) {
-            .desktop-icon { width: 70px; }
-            .desktop-icon .icon { font-size: 36px; }
-            .window { width: 92%; }
+        .currency-row select, .currency-row input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+        }
+        /* استجابة للجوال */
+        @media (max-width: 768px) {
+            .desktop-icon { width: 65px; }
+            .desktop-icon .icon { font-size: 32px; }
+            .window { width: 95%; max-width: 95%; left: 2.5% !important; right: 2.5% !important; }
+            .taskbar-left .start-menu, .taskbar-left .theme-toggle { padding: 4px 10px; font-size: 12px; }
+            .taskbar-right { gap: 6px; font-size: 10px; }
+            .calendar-day { padding: 5px; font-size: 12px; }
+            .calc-btn { padding: 10px; font-size: 16px; }
+        }
+        @media (max-width: 480px) {
+            .desktop-icon { width: 55px; }
+            .desktop-icon .icon { font-size: 28px; }
+            .taskbar { height: 50px; padding: 0 8px; }
         }
     </style>
 </head>
@@ -254,12 +272,12 @@
 
 <div class="taskbar">
     <div class="taskbar-left">
-        <div class="start-menu" onclick="showNotification('☁️ V8 Cloud OS v8.1')">☁️ V8</div>
+        <div class="start-menu" onclick="showNotification('☁️ V8 Cloud OS v8.2')">☁️ V8</div>
         <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
     </div>
     <div class="taskbar-right">
-        <div class="battery-status" id="batteryStatus">🔋 --%</div>
-        <div class="network-status" id="networkStatus">📶 Online</div>
+        <div id="batteryStatus">🔋 --%</div>
+        <div id="networkStatus">📶 Online</div>
         <div id="clock"></div>
     </div>
 </div>
@@ -268,8 +286,8 @@
 <div id="windowsContainer"></div>
 
 <script>
-    // ========== الإشعارات ==========
-    function showNotification(msg, type = 'info') {
+    // الإشعارات
+    function showNotification(msg) {
         let n = document.createElement('div');
         n.className = 'notification';
         n.textContent = msg;
@@ -277,7 +295,7 @@
         setTimeout(() => n.remove(), 2500);
     }
 
-    // ========== الساعة ==========
+    // الساعة
     function updateClock() {
         let now = new Date();
         document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
@@ -285,7 +303,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // ========== حالة البطارية ==========
+    // البطارية
     if ('getBattery' in navigator) {
         navigator.getBattery().then(battery => {
             function updateBattery() {
@@ -296,11 +314,9 @@
             battery.addEventListener('levelchange', updateBattery);
             battery.addEventListener('chargingchange', updateBattery);
         });
-    } else {
-        document.getElementById('batteryStatus').innerHTML = '🔋 --%';
     }
 
-    // ========== حالة الشبكة ==========
+    // الشبكة
     function updateNetwork() {
         document.getElementById('networkStatus').innerHTML = navigator.onLine ? '📶 Online' : '📡 Offline';
     }
@@ -308,26 +324,33 @@
     window.addEventListener('online', updateNetwork);
     window.addEventListener('offline', updateNetwork);
 
-    // ========== تبديل الوضع ==========
+    // تبديل الوضع
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
-        let themeBtn = document.querySelector('.theme-toggle');
+        let btn = document.querySelector('.theme-toggle');
         if (document.body.classList.contains('light-mode')) {
-            themeBtn.innerHTML = '☀️';
+            btn.innerHTML = '☀️';
             showNotification('✅ وضع النهار');
         } else {
-            themeBtn.innerHTML = '🌙';
+            btn.innerHTML = '🌙';
             showNotification('✅ وضع الليل');
         }
     }
 
-    // ========== التطبيقات ==========
+    // التطبيقات
     let apps = [
         { name: 'notes', display: '📝 مفكرة', icon: '📝' },
         { name: 'calculator', display: '🔢 حاسبة', icon: '🔢' },
+        { name: 'scientific', display: '📊 حاسبة علمية', icon: '📊' },
         { name: 'files', display: '📁 ملفات', icon: '📁' },
         { name: 'calendar', display: '📅 تقويم', icon: '📅' },
         { name: 'tasks', display: '✅ مهام', icon: '✅' },
+        { name: 'music', display: '🎵 مشغل موسيقى', icon: '🎵' },
+        { name: 'gallery', display: '🖼️ معرض صور', icon: '🖼️' },
+        { name: 'draw', display: '🎨 رسم', icon: '🎨' },
+        { name: 'alarm', display: '⏰ منبه', icon: '⏰' },
+        { name: 'currency', display: '🧮 تحويل عملات', icon: '🧮' },
+        { name: 'browser', display: '🌐 متصفح', icon: '🌐' },
         { name: 'settings', display: '⚙️ إعدادات', icon: '⚙️' }
     ];
 
@@ -347,8 +370,8 @@
     function openApp(appName) {
         let winId = Date.now();
         let winHtml = `
-            <div id="win-${winId}" class="window" style="left:${50 + windows.length * 30}px; top:${100 + windows.length * 20}px; z-index:${nextZ++}">
-                <div class="window-header" onmousedown="startDrag(event, 'win-${winId}')">
+            <div id="win-${winId}" class="window" style="left:${30 + windows.length * 20}px; top:${50 + windows.length * 15}px; z-index:${nextZ++}">
+                <div class="window-header" onmousedown="startDrag(event, 'win-${winId}')" ontouchstart="startDrag(event, 'win-${winId}')">
                     <span>${apps.find(a=>a.name===appName)?.display || appName}</span>
                     <div class="window-close" onclick="closeWindow('win-${winId}')">✕</div>
                 </div>
@@ -359,256 +382,230 @@
         `;
         document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
         let content = document.getElementById(`content-${winId}`);
-        renderApp(content, appName);
+        renderApp(content, appName, winId);
         windows.push({ id: `win-${winId}`, element: document.getElementById(`win-${winId}`) });
     }
 
-    // حاسبة آمنة (بدون eval)
-    let calcValue = '0';
-    let calcOperator = null;
-    let waitingForOperand = false;
-
-    function updateCalculatorDisplay() {
-        let display = document.getElementById('calc-display');
-        if (display) display.value = calcValue;
+    // حاسبة عادية
+    let calcValue = '0', calcOperator = null, waitingForOperand = false, calcPreviousValue = 0;
+    function updateCalcDisplay() { let d = document.getElementById('calc-display'); if(d) d.value = calcValue; }
+    function inputDigit(d) {
+        if (waitingForOperand) { calcValue = d; waitingForOperand = false; }
+        else { calcValue = calcValue === '0' ? d : calcValue + d; }
+        updateCalcDisplay();
     }
-
-    function inputDigit(digit) {
-        if (waitingForOperand) {
-            calcValue = digit;
-            waitingForOperand = false;
-        } else {
-            calcValue = calcValue === '0' ? digit : calcValue + digit;
-        }
-        updateCalculatorDisplay();
-    }
-
     function inputDecimal() {
-        if (waitingForOperand) {
-            calcValue = '0.';
-            waitingForOperand = false;
-        } else if (!calcValue.includes('.')) {
-            calcValue += '.';
-        }
-        updateCalculatorDisplay();
+        if (waitingForOperand) { calcValue = '0.'; waitingForOperand = false; }
+        else if (!calcValue.includes('.')) calcValue += '.';
+        updateCalcDisplay();
     }
-
-    function performOperation(nextOperator) {
-        let inputValue = parseFloat(calcValue);
+    function performOperation(next) {
+        let input = parseFloat(calcValue);
         if (calcOperator && !waitingForOperand) {
             let result = 0;
             switch (calcOperator) {
-                case '+': result = calcPreviousValue + inputValue; break;
-                case '-': result = calcPreviousValue - inputValue; break;
-                case '*': result = calcPreviousValue * inputValue; break;
-                case '/': result = calcPreviousValue / inputValue; break;
-                default: result = inputValue;
+                case '+': result = calcPreviousValue + input; break;
+                case '-': result = calcPreviousValue - input; break;
+                case '*': result = calcPreviousValue * input; break;
+                case '/': result = calcPreviousValue / input; break;
+                default: result = input;
             }
             calcValue = String(result);
-            updateCalculatorDisplay();
+            updateCalcDisplay();
         }
         calcPreviousValue = parseFloat(calcValue);
-        calcOperator = nextOperator;
+        calcOperator = next;
         waitingForOperand = true;
     }
+    function clearCalc() { calcValue = '0'; calcOperator = null; waitingForOperand = false; updateCalcDisplay(); }
 
-    function clearCalculator() {
-        calcValue = '0';
-        calcOperator = null;
-        waitingForOperand = false;
-        updateCalculatorDisplay();
+    // حاسبة علمية
+    let sciValue = '0';
+    function updateSciDisplay() { let d = document.getElementById('sci-display'); if(d) d.value = sciValue; }
+    function sciInput(d) { sciValue = sciValue === '0' ? d : sciValue + d; updateSciDisplay(); }
+    function sciClear() { sciValue = '0'; updateSciDisplay(); }
+    function sciFunction(fn) {
+        let num = parseFloat(sciValue);
+        if (fn === 'sin') sciValue = Math.sin(num).toString();
+        else if (fn === 'cos') sciValue = Math.cos(num).toString();
+        else if (fn === 'tan') sciValue = Math.tan(num).toString();
+        else if (fn === 'sqrt') sciValue = Math.sqrt(num).toString();
+        else if (fn === 'log') sciValue = Math.log10(num).toString();
+        else if (fn === 'ln') sciValue = Math.log(num).toString();
+        else if (fn === 'pow2') sciValue = Math.pow(num, 2).toString();
+        updateSciDisplay();
     }
 
-    let calcPreviousValue = 0;
+    // عملات
+    const rates = { USD: 1, EUR: 0.92, GBP: 0.78, SAR: 3.75, EGP: 48.5, AED: 3.67, JOD: 0.71, KWD: 0.31 };
+    function convertCurrency() {
+        let amount = parseFloat(document.getElementById('currency-amount')?.value) || 0;
+        let from = document.getElementById('currency-from')?.value;
+        let to = document.getElementById('currency-to')?.value;
+        if (from && to) {
+            let result = (amount / rates[from]) * rates[to];
+            document.getElementById('currency-result').innerHTML = `${result.toFixed(2)} ${to}`;
+        }
+    }
 
-    function renderApp(container, appName) {
+    // منبه
+    let alarmTimeout = null;
+    function setAlarm() {
+        let time = document.getElementById('alarm-time')?.value;
+        if (time) {
+            let now = new Date();
+            let [hours, minutes] = time.split(':');
+            let alarm = new Date();
+            alarm.setHours(parseInt(hours), parseInt(minutes), 0);
+            if (alarm <= now) alarm.setDate(alarm.getDate() + 1);
+            let diff = alarm - now;
+            if (alarmTimeout) clearTimeout(alarmTimeout);
+            alarmTimeout = setTimeout(() => { alert('⏰ تنبيه! حان وقت المنبه'); showNotification('🔔 وقت المنبه!'); }, diff);
+            showNotification(`✅ تم ضبط المنبه على ${time}`);
+        }
+    }
+
+    function renderApp(container, appName, winId) {
         if (appName === 'notes') {
             let saved = localStorage.getItem('notes_content') || '';
-            container.innerHTML = `
-                <textarea id="notes-area" style="width:100%; height:200px; padding:12px; border:1px solid #ddd; border-radius:16px; font-family:inherit;">${saved}</textarea>
-                <button onclick="saveNotes()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>
-                <div style="margin-top:10px; font-size:12px; color:#999;">آخر حفظ: ${localStorage.getItem('notes_last_saved') || 'لم يتم حفظ أي شيء'}</div>
-            `;
-            window.saveNotes = () => {
-                let content = document.getElementById('notes-area').value;
+            container.innerHTML = `<textarea id="notes-area-${winId}" style="width:100%; height:200px; padding:12px; border:1px solid #ddd; border-radius:16px;">${saved}</textarea>
+                <button onclick="saveNotes_${winId}()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>`;
+            window[`saveNotes_${winId}`] = () => {
+                let content = document.getElementById(`notes-area-${winId}`).value;
                 localStorage.setItem('notes_content', content);
-                localStorage.setItem('notes_last_saved', new Date().toLocaleString('ar-EG'));
                 showNotification('✅ تم حفظ الملاحظات');
             };
         }
         else if (appName === 'calculator') {
-            container.innerHTML = `
-                <input type="text" id="calc-display" readonly value="0" style="width:100%; padding:15px; font-size:32px; text-align:left; border:1px solid #ddd; border-radius:16px;">
+            container.innerHTML = `<input id="calc-display" readonly value="0" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px;">
                 <div class="calc-buttons">
-                    <button class="calc-btn" onclick="inputDigit('7')">7</button>
-                    <button class="calc-btn" onclick="inputDigit('8')">8</button>
-                    <button class="calc-btn" onclick="inputDigit('9')">9</button>
-                    <button class="calc-btn operator" onclick="performOperation('/')">÷</button>
-                    <button class="calc-btn" onclick="inputDigit('4')">4</button>
-                    <button class="calc-btn" onclick="inputDigit('5')">5</button>
-                    <button class="calc-btn" onclick="inputDigit('6')">6</button>
-                    <button class="calc-btn operator" onclick="performOperation('*')">×</button>
-                    <button class="calc-btn" onclick="inputDigit('1')">1</button>
-                    <button class="calc-btn" onclick="inputDigit('2')">2</button>
-                    <button class="calc-btn" onclick="inputDigit('3')">3</button>
-                    <button class="calc-btn operator" onclick="performOperation('-')">−</button>
-                    <button class="calc-btn" onclick="inputDigit('0')">0</button>
-                    <button class="calc-btn" onclick="inputDecimal()">.</button>
-                    <button class="calc-btn equals" onclick="performOperation('=')">=</button>
-                    <button class="calc-btn operator" onclick="performOperation('+')">+</button>
-                    <button class="calc-btn clear" onclick="clearCalculator()">C</button>
-                </div>
-            `;
-            updateCalculatorDisplay();
+                    ${'789/456*123-0.=+'.split('').map(b => `<div class="calc-btn" onclick="${b === '/' ? 'performOperation' : b === '*' ? 'performOperation' : b === '-' ? 'performOperation' : b === '+' ? 'performOperation' : b === '=' ? 'performOperation' : b === '.' ? 'inputDecimal' : 'inputDigit'}('${b}')">${b}</div>`).join('')}
+                    <div class="calc-btn clear" onclick="clearCalc()">C</div>
+                </div>`;
+            updateCalcDisplay();
+        }
+        else if (appName === 'scientific') {
+            container.innerHTML = `<input id="sci-display" readonly value="0" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px; margin-bottom:10px;">
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+                    <div class="calc-btn" onclick="sciFunction('sin')">sin</div><div class="calc-btn" onclick="sciFunction('cos')">cos</div><div class="calc-btn" onclick="sciFunction('tan')">tan</div>
+                    <div class="calc-btn" onclick="sciFunction('sqrt')">√</div><div class="calc-btn" onclick="sciFunction('pow2')">x²</div><div class="calc-btn" onclick="sciFunction('log')">log</div>
+                    <div class="calc-btn" onclick="sciFunction('ln')">ln</div><div class="calc-btn" onclick="sciInput('7')">7</div><div class="calc-btn" onclick="sciInput('8')">8</div>
+                    <div class="calc-btn" onclick="sciInput('9')">9</div><div class="calc-btn" onclick="sciInput('4')">4</div><div class="calc-btn" onclick="sciInput('5')">5</div>
+                    <div class="calc-btn" onclick="sciInput('6')">6</div><div class="calc-btn" onclick="sciInput('1')">1</div><div class="calc-btn" onclick="sciInput('2')">2</div>
+                    <div class="calc-btn" onclick="sciInput('3')">3</div><div class="calc-btn" onclick="sciInput('0')">0</div><div class="calc-btn" onclick="sciInput('.')">.</div>
+                    <div class="calc-btn clear" onclick="sciClear()">C</div><div class="calc-btn equals" onclick="sciFunction('=')">=</div>
+                </div>`;
         }
         else if (appName === 'files') {
             let files = JSON.parse(localStorage.getItem('user_files') || '[]');
-            container.innerHTML = `
-                <button onclick="addFile()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ ملف جديد</button>
-                <div style="border:1px solid #ddd; border-radius:16px; padding:12px; max-height:250px; overflow-y:auto;">
-                    ${files.map((f, i) => `
-                        <div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                            <span>📄 ${f.name}</span>
-                            <button onclick="deleteFile(${i})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:8px;">🗑️</button>
-                        </div>
-                    `).join('')}
-                    ${files.length === 0 ? '<p style="color:#999; text-align:center;">لا توجد ملفات</p>' : ''}
-                </div>
-            `;
-            window.addFile = () => {
+            container.innerHTML = `<button onclick="addFile_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px;">➕ ملف جديد</button>
+                <div style="margin-top:10px;">${files.map((f,i)=>`<div style="padding:8px; border-bottom:1px solid #eee;">📄 ${f.name} <button onclick="deleteFile_${winId}(${i})" style="float:left; background:#dc3545; color:white; border:none; padding:2px 8px; border-radius:8px;">🗑️</button></div>`).join('')}</div>`;
+            window[`addFile_${winId}`] = () => {
                 let name = prompt('اسم الملف:');
-                if(name) {
-                    let files = JSON.parse(localStorage.getItem('user_files') || '[]');
-                    files.push({ name, created: new Date().toISOString(), content: '' });
-                    localStorage.setItem('user_files', JSON.stringify(files));
-                    openApp('files');
-                    showNotification('✅ تم إنشاء الملف');
-                }
+                if(name) { let f=JSON.parse(localStorage.getItem('user_files')||'[]'); f.push({name}); localStorage.setItem('user_files',JSON.stringify(f)); openApp('files'); showNotification('✅ تم إنشاء الملف'); }
             };
-            window.deleteFile = (index) => {
-                let files = JSON.parse(localStorage.getItem('user_files') || '[]');
-                files.splice(index, 1);
-                localStorage.setItem('user_files', JSON.stringify(files));
-                openApp('files');
-                showNotification('🗑️ تم حذف الملف');
+            window[`deleteFile_${winId}`] = (i) => {
+                let f=JSON.parse(localStorage.getItem('user_files')||'[]'); f.splice(i,1); localStorage.setItem('user_files',JSON.stringify(f)); openApp('files'); showNotification('🗑️ تم الحذف');
             };
         }
         else if (appName === 'calendar') {
             let today = new Date();
-            let currentMonth = today.getMonth();
-            let currentYear = today.getFullYear();
-            let currentDate = today.getDate();
-            
-            function getDaysInMonth(year, month) {
-                return new Date(year, month + 1, 0).getDate();
-            }
-            function getFirstDayIndex(year, month) {
-                return new Date(year, month, 1).getDay();
-            }
-            
-            let daysInMonth = getDaysInMonth(currentYear, currentMonth);
-            let firstDay = getFirstDayIndex(currentYear, currentMonth);
-            let days = [];
-            for(let i = 0; i < firstDay; i++) days.push(null);
-            for(let i = 1; i <= daysInMonth; i++) days.push(i);
-            
-            container.innerHTML = `
-                <div class="calendar-header">
-                    <button onclick="prevMonth()" style="padding:5px 10px; border-radius:8px; border:1px solid #ddd;">◀</button>
-                    <h3>${today.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}</h3>
-                    <button onclick="nextMonth()" style="padding:5px 10px; border-radius:8px; border:1px solid #ddd;">▶</button>
-                </div>
-                <div class="calendar-grid">
-                    ${['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'].map(d => `<div style="font-weight:bold; text-align:center;">${d}</div>`).join('')}
-                    ${days.map(day => `<div class="calendar-day" style="${day === currentDate ? 'background:#667eea; color:white;' : ''}">${day || ''}</div>`).join('')}
-                </div>
-            `;
+            container.innerHTML = `<div class="calendar-header"><button onclick="alert('شهر مضى')">◀</button><h3>${today.toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</h3><button onclick="alert('شهر قادم')">▶</button></div>
+                <div class="calendar-grid">${['ح','ن','ث','ر','خ','ج','س'].map(d=>`<div style="font-weight:bold;">${d}</div>`).join('')}${Array(35).fill().map((_,i)=>`<div class="calendar-day">${i<30?i+1:''}</div>`).join('')}</div>`;
         }
         else if (appName === 'tasks') {
             let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            container.innerHTML = `
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="new-task" placeholder="مهمة جديدة..." style="flex:1; padding:10px; border:1px solid #ddd; border-radius:12px;">
-                    <button onclick="addTask()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:12px;">➕ إضافة</button>
-                </div>
-                <div id="tasks-list">
-                    ${tasks.map((task, i) => `
-                        <div class="task-item ${task.completed ? 'completed' : ''}">
-                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
-                            <span style="flex:1;">${task.text}</span>
-                            <button onclick="deleteTask(${i})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:8px;">🗑️</button>
-                        </div>
-                    `).join('')}
-                    ${tasks.length === 0 ? '<p style="color:#999; text-align:center;">لا توجد مهام</p>' : ''}
-                </div>
-            `;
-            window.addTask = () => {
-                let input = document.getElementById('new-task');
-                if(input.value.trim()) {
-                    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-                    tasks.push({ text: input.value, completed: false });
-                    localStorage.setItem('tasks', JSON.stringify(tasks));
-                    openApp('tasks');
-                    showNotification('✅ تم إضافة المهمة');
-                }
+            container.innerHTML = `<div style="display:flex; gap:10px;"><input id="new-task-${winId}" placeholder="مهمة جديدة..." style="flex:1; padding:10px; border:1px solid #ddd; border-radius:12px;"><button onclick="addTask_${winId}()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:12px;">➕</button></div>
+                <div id="tasks-list-${winId}">${tasks.map((t,i)=>`<div class="task-item ${t.completed?'completed':''}"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask_${winId}(${i})"><span>${t.text}</span><button onclick="deleteTask_${winId}(${i})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:8px;">🗑️</button></div>`).join('')}</div>`;
+            window[`addTask_${winId}`] = () => {
+                let input = document.getElementById(`new-task-${winId}`);
+                if(input.value.trim()) { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.push({text:input.value,completed:false}); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); }
             };
-            window.toggleTask = (index) => {
-                let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-                tasks[index].completed = !tasks[index].completed;
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                openApp('tasks');
+            window[`toggleTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t[i].completed=!t[i].completed; localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); };
+            window[`deleteTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.splice(i,1); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); };
+        }
+        else if (appName === 'music') {
+            container.innerHTML = `<div style="text-align:center;"><div style="font-size:48px;">🎵</div><audio id="audio-${winId}" controls style="width:100%; margin:10px 0;"></audio>
+                <input type="file" accept="audio/*" onchange="loadMusic_${winId}(this)"><div id="now-playing-${winId}" style="margin-top:10px; color:#999;"></div></div>`;
+            window[`loadMusic_${winId}`] = (input) => {
+                let file = input.files[0];
+                if(file) { let url = URL.createObjectURL(file); document.getElementById(`audio-${winId}`).src = url; document.getElementById(`now-playing-${winId}`).innerHTML = `🎶 الآن: ${file.name}`; showNotification('✅ تم تحميل الأغنية'); }
             };
-            window.deleteTask = (index) => {
-                let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-                tasks.splice(index, 1);
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                openApp('tasks');
-                showNotification('🗑️ تم حذف المهمة');
+        }
+        else if (appName === 'gallery') {
+            let images = JSON.parse(localStorage.getItem('gallery') || '[]');
+            container.innerHTML = `<button onclick="addImage_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:16px;">➕ إضافة صورة</button>
+                <div class="gallery-grid" id="gallery-${winId}">${images.map((img,i)=>`<div class="gallery-item" onclick="viewImage_${winId}(${i})"><div style="font-size:40px;">🖼️</div><div>صورة ${i+1}</div></div>`).join('')}</div>`;
+            window[`addImage_${winId}`] = () => {
+                let input = document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange=(e)=>{let file=e.target.files[0]; if(file){let reader=new FileReader(); reader.onload=(ev)=>{let imgs=JSON.parse(localStorage.getItem('gallery')||'[]'); imgs.push(ev.target.result); localStorage.setItem('gallery',JSON.stringify(imgs)); openApp('gallery'); showNotification('✅ تم إضافة الصورة');}; reader.readAsDataURL(file);}}; input.click();
+            };
+            window[`viewImage_${winId}`] = (i) => { let imgs=JSON.parse(localStorage.getItem('gallery')||'[]'); if(imgs[i]) window.open(imgs[i]); };
+        }
+        else if (appName === 'draw') {
+            container.innerHTML = `<canvas id="canvas-${winId}" width="400" height="300" style="width:100%; height:auto; border:1px solid #ddd; border-radius:12px;"></canvas>
+                <div style="display:flex; gap:10px; margin-top:10px;"><button onclick="clearCanvas_${winId}()" style="flex:1; padding:8px; background:#dc3545; color:white; border:none; border-radius:12px;">🗑️ مسح</button>
+                <button onclick="saveDrawing_${winId}()" style="flex:1; padding:8px; background:#28a745; color:white; border:none; border-radius:12px;">💾 حفظ</button></div>`;
+            setTimeout(() => {
+                let canvas = document.getElementById(`canvas-${winId}`);
+                let ctx = canvas.getContext('2d');
+                canvas.width = 400; canvas.height = 300;
+                ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                let drawing = false;
+                let start = (e) => { drawing = true; let rect = canvas.getBoundingClientRect(); let x = (e.clientX||e.touches[0].clientX) - rect.left; let y = (e.clientY||e.touches[0].clientY) - rect.top; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y); ctx.stroke(); };
+                let draw = (e) => { if(!drawing) return; let rect = canvas.getBoundingClientRect(); let x = (e.clientX||e.touches[0].clientX) - rect.left; let y = (e.clientY||e.touches[0].clientY) - rect.top; ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); };
+                let stop = () => { drawing = false; ctx.beginPath(); };
+                canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop);
+                canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop);
+                window[`clearCanvas_${winId}`] = () => { ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height); };
+                window[`saveDrawing_${winId}`] = () => { let link = document.createElement('a'); link.download = `drawing_${Date.now()}.png`; link.href = canvas.toDataURL(); link.click(); showNotification('✅ تم حفظ الرسم'); };
+            }, 100);
+        }
+        else if (appName === 'alarm') {
+            container.innerHTML = `<div style="text-align:center;"><div style="font-size:48px;">⏰</div><input type="time" id="alarm-time-${winId}" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:12px;">
+                <button onclick="setAlarm_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">✅ ضبط المنبه</button></div>`;
+            window[`setAlarm_${winId}`] = () => {
+                let time = document.getElementById(`alarm-time-${winId}`).value;
+                if(time) { let now = new Date(); let [h,m] = time.split(':'); let alarm = new Date(); alarm.setHours(h,m,0); if(alarm<=now) alarm.setDate(alarm.getDate()+1); let diff = alarm-now; setTimeout(()=>{ alert('⏰ وقت المنبه!'); showNotification('🔔 وقت المنبه!'); }, diff); showNotification(`✅ تم ضبط المنبه على ${time}`); }
+            };
+        }
+        else if (appName === 'currency') {
+            container.innerHTML = `<div class="currency-row"><input type="number" id="currency-amount-${winId}" placeholder="المبلغ" value="1" oninput="convertCurrency_${winId}()"></div>
+                <div class="currency-row"><select id="currency-from-${winId}" onchange="convertCurrency_${winId}()">${Object.keys(rates).map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+                <span>→</span><select id="currency-to-${winId}" onchange="convertCurrency_${winId}()">${Object.keys(rates).map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+                <div class="currency-row"><div style="flex:1; text-align:center; padding:12px; background:#f0f0f0; border-radius:12px;" id="currency-result-${winId}">1 USD</div></div>`;
+            window[`convertCurrency_${winId}`] = () => {
+                let amt = parseFloat(document.getElementById(`currency-amount-${winId}`).value) || 0;
+                let from = document.getElementById(`currency-from-${winId}`).value;
+                let to = document.getElementById(`currency-to-${winId}`).value;
+                let result = (amt / rates[from]) * rates[to];
+                document.getElementById(`currency-result-${winId}`).innerHTML = `${result.toFixed(2)} ${to}`;
+            };
+            setTimeout(() => window[`convertCurrency_${winId}`](), 100);
+        }
+        else if (appName === 'browser') {
+            container.innerHTML = `<input type="text" id="browser-url-${winId}" placeholder="https://google.com" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:12px;">
+                <button onclick="loadWeb_${winId}()" style="width:100%; margin:10px 0; padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">🔍 بحث</button>
+                <iframe id="browser-frame-${winId}" style="width:100%; height:250px; border:1px solid #ddd; border-radius:12px;"></iframe>`;
+            window[`loadWeb_${winId}`] = () => {
+                let url = document.getElementById(`browser-url-${winId}`).value;
+                document.getElementById(`browser-frame-${winId}`).src = url.startsWith('http') ? url : 'https://' + url;
             };
         }
         else if (appName === 'settings') {
             let totalSize = 0;
-            for(let i = 0; i < localStorage.length; i++) {
-                let key = localStorage.key(i);
-                let val = localStorage.getItem(key);
-                totalSize += (key.length + val.length) * 2;
-            }
-            let sizeMB = (totalSize / 1024 / 1024).toFixed(2);
-            container.innerHTML = `
-                <div>
-                    <div style="margin:15px 0;">⚙️ الإعدادات</div>
-                    <div style="margin:15px 0;">💾 التخزين: ${sizeMB} MB</div>
-                    <div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode') ? 'نهار ☀️' : 'ليل 🌙'}</div>
-                    <div style="margin:15px 0;">📱 الجهاز: ${/Mobi/.test(navigator.userAgent) ? 'جوال' : 'حاسوب'}</div>
-                    <button onclick="clearAllData()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
-                    <button onclick="exportData()" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير البيانات</button>
-                </div>
-            `;
-            window.clearAllData = () => {
-                if(confirm('هل أنت متأكد؟ سيتم مسح جميع البيانات')) {
-                    localStorage.clear();
-                    showNotification('✅ تم مسح جميع البيانات');
-                    setTimeout(() => location.reload(), 1000);
-                }
-            };
-            window.exportData = () => {
-                let data = {};
-                for(let i = 0; i < localStorage.length; i++) {
-                    let key = localStorage.key(i);
-                    data[key] = localStorage.getItem(key);
-                }
-                let blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                let link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `v8_backup_${new Date().toISOString()}.json`;
-                link.click();
-                showNotification('✅ تم تصدير البيانات');
-            };
+            for(let i=0;i<localStorage.length;i++) totalSize += (localStorage.key(i).length + localStorage.getItem(localStorage.key(i)).length)*2;
+            container.innerHTML = `<div><div>⚙️ الإعدادات</div><div>💾 التخزين: ${(totalSize/1048576).toFixed(2)} MB</div>
+                <div>🎨 الوضع: ${document.body.classList.contains('light-mode')?'نهار ☀️':'ليل 🌙'}</div>
+                <button onclick="clearAllData_${winId}()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
+                <button onclick="exportData_${winId}()" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير</button></div>`;
+            window[`clearAllData_${winId}`] = () => { if(confirm('مسح جميع البيانات؟')){ localStorage.clear(); showNotification('✅ تم المسح'); setTimeout(()=>location.reload(),1000); } };
+            window[`exportData_${winId}`] = () => { let d={}; for(let i=0;i<localStorage.length;i++) d[localStorage.key(i)]=localStorage.getItem(localStorage.key(i)); let b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`v8_backup_${Date.now()}.json`; a.click(); showNotification('✅ تم التصدير'); };
         }
     }
 
-    // ========== سحب النوافذ ==========
+    // سحب النوافذ
     function startDrag(event, winId) {
+        event.preventDefault();
         let win = windows.find(w => w.id === winId);
         if(!win) return;
         let rect = win.element.getBoundingClientRect();
@@ -616,19 +613,26 @@
         let clientY = event.touches ? event.touches[0].clientY : event.clientY;
         let offsetX = clientX - rect.left;
         let offsetY = clientY - rect.top;
-        
         function onMove(e) {
             let cx = e.touches ? e.touches[0].clientX : e.clientX;
             let cy = e.touches ? e.touches[0].clientY : e.clientY;
-            win.element.style.left = (cx - offsetX) + 'px';
-            win.element.style.top = (cy - offsetY) + 'px';
+            let newX = cx - offsetX;
+            let newY = cy - offsetY;
+            newX = Math.max(0, Math.min(newX, window.innerWidth - rect.width));
+            newY = Math.max(0, Math.min(newY, window.innerHeight - rect.height - 55));
+            win.element.style.left = newX + 'px';
+            win.element.style.top = newY + 'px';
         }
         function onStop() {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onStop);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onStop);
         }
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onStop);
+        document.addEventListener('touchmove', onMove);
+        document.addEventListener('touchend', onStop);
     }
 
     function closeWindow(winId) {
@@ -636,17 +640,8 @@
         if(win) { win.element.remove(); windows = windows.filter(w => w.id !== winId); }
     }
 
-    document.addEventListener('touchstart', (e) => {
-        if(e.target.closest('.window-header')) {
-            let header = e.target.closest('.window-header');
-            let win = header.closest('.window');
-            let winId = win.id;
-            startDrag(e, winId);
-        }
-    });
-
     loadDesktopIcons();
-    showNotification('✨ مرحباً بك في V8 Cloud OS v8.1');
+    showNotification('✨ مرحباً بك في V8 Cloud OS v8.2');
 </script>
 </body>
 </html>
