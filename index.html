@@ -5,253 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>V8 Cloud OS | الإصدار 8.2</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-        }
-        /* وضع الليل/النهار */
-        body.light-mode {
-            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
-        }
-        body.light-mode .taskbar {
-            background: rgba(255,255,255,0.9);
-            color: #333;
-        }
-        body.light-mode .desktop-icon {
-            background: rgba(255,255,255,0.7);
-            color: #333;
-        }
-        body.light-mode .desktop-icon .label {
-            color: #333;
-        }
-        body.light-mode .window {
-            background: rgba(255,255,255,0.98);
-        }
-        /* شريط المهام */
-        .taskbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 55px;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 12px;
-            z-index: 1000;
-        }
-        .taskbar-left {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .start-menu, .theme-toggle {
-            background: rgba(255,255,255,0.15);
-            padding: 6px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .taskbar-right {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            font-size: 12px;
-        }
-        /* سطح المكتب */
-        .desktop-icons {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 10;
-        }
-        .desktop-icon {
-            width: 75px;
-            text-align: center;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 16px;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(5px);
-            transition: all 0.2s;
-        }
-        .desktop-icon:active {
-            transform: scale(0.95);
-        }
-        .desktop-icon .icon {
-            font-size: 38px;
-        }
-        .desktop-icon .label {
-            color: white;
-            font-size: 10px;
-            margin-top: 4px;
-        }
-        /* النوافذ */
-        .window {
-            position: absolute;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 450px;
-            min-height: 400px;
-            max-height: 80vh;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            transition: all 0.2s;
-        }
-        .window-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 12px;
-            border-radius: 20px 20px 0 0;
-            color: white;
-            cursor: move;
-            display: flex;
-            justify-content: space-between;
-            touch-action: none;
-        }
-        .window-content {
-            padding: 15px;
-            flex: 1;
-            overflow: auto;
-            min-height: 250px;
-        }
-        .window-close {
-            cursor: pointer;
-            background: rgba(255,255,255,0.2);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        /* الإشعارات */
-        .notification {
-            position: fixed;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
-            z-index: 3000;
-            font-size: 13px;
-            text-align: center;
-            animation: slideDown 0.3s ease;
-            max-width: 90%;
-        }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        /* التقويم */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .calendar-day {
-            padding: 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        /* المهام */
-        .task-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
-        .task-item.completed span {
-            text-decoration: line-through;
-            color: #999;
-        }
-        /* الحاسبة */
-        .calc-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-        .calc-btn {
-            padding: 12px;
-            font-size: 18px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            background: #f5f5f5;
-            cursor: pointer;
-            text-align: center;
-        }
-        /* معرض الصور */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
-        .gallery-item {
-            background: #f0f0f0;
-            border-radius: 12px;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-        }
-        /* لوحة الرسم */
-        canvas {
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            cursor: crosshair;
-            touch-action: none;
-            width: 100%;
-            height: auto;
-            background: white;
-        }
-        /* تحويل العملات */
-        .currency-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .currency-row select, .currency-row input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-        }
-        /* استجابة للجوال */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); overflow: hidden; height: 100vh; width: 100vw; }
+        body.light-mode { background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%); }
+        body.light-mode .taskbar { background: rgba(255,255,255,0.9); color: #333; }
+        body.light-mode .desktop-icon { background: rgba(255,255,255,0.7); color: #333; }
+        body.light-mode .desktop-icon .label { color: #333; }
+        body.light-mode .window { background: rgba(255,255,255,0.98); }
+        .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 55px; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; z-index: 1000; }
+        .taskbar-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .start-menu, .theme-toggle { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; }
+        .taskbar-right { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+        .desktop-icons { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 12px; z-index: 10; }
+        .desktop-icon { width: 75px; text-align: center; cursor: pointer; padding: 8px; border-radius: 16px; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); transition: all 0.2s; }
+        .desktop-icon:active { transform: scale(0.95); }
+        .desktop-icon .icon { font-size: 38px; }
+        .desktop-icon .label { color: white; font-size: 10px; margin-top: 4px; }
+        .window { position: absolute; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 450px; min-height: 400px; max-height: 80vh; z-index: 100; display: flex; flex-direction: column; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
+        .window-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px; border-radius: 20px 20px 0 0; color: white; cursor: move; display: flex; justify-content: space-between; touch-action: none; }
+        .window-content { padding: 15px; flex: 1; overflow: auto; min-height: 250px; }
+        .window-close { cursor: pointer; background: rgba(255,255,255,0.2); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+        .window-close:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+        .notification { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 40px; z-index: 3000; font-size: 13px; text-align: center; animation: slideDown 0.3s ease; max-width: 90%; }
+        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; margin-top: 10px; }
+        .calendar-day { padding: 8px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .task-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #eee; }
+        .task-item.completed span { text-decoration: line-through; color: #999; }
+        .calc-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        .calc-btn { padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 12px; background: #f5f5f5; cursor: pointer; text-align: center; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .gallery-item { background: #f0f0f0; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; }
+        canvas { border: 1px solid #ddd; border-radius: 12px; cursor: crosshair; touch-action: none; width: 100%; height: auto; background: white; }
+        .currency-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .currency-row select, .currency-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 12px; }
         @media (max-width: 768px) {
             .desktop-icon { width: 65px; }
             .desktop-icon .icon { font-size: 32px; }
@@ -386,6 +174,24 @@
         windows.push({ id: `win-${winId}`, element: document.getElementById(`win-${winId}`) });
     }
 
+    // إغلاق النافذة - تم إصلاح المشكلة
+    function closeWindow(winId) {
+        let win = windows.find(w => w.id === winId);
+        if(win) { 
+            win.element.remove(); 
+            windows = windows.filter(w => w.id !== winId);
+            showNotification('✅ تم إغلاق النافذة');
+        } else {
+            // محاولة إغلاق بالطريقة المباشرة
+            let element = document.getElementById(winId);
+            if(element) {
+                element.remove();
+                windows = windows.filter(w => w.id !== winId);
+                showNotification('✅ تم إغلاق النافذة');
+            }
+        }
+    }
+
     // حاسبة عادية
     let calcValue = '0', calcOperator = null, waitingForOperand = false, calcPreviousValue = 0;
     function updateCalcDisplay() { let d = document.getElementById('calc-display'); if(d) d.value = calcValue; }
@@ -438,32 +244,6 @@
 
     // عملات
     const rates = { USD: 1, EUR: 0.92, GBP: 0.78, SAR: 3.75, EGP: 48.5, AED: 3.67, JOD: 0.71, KWD: 0.31 };
-    function convertCurrency() {
-        let amount = parseFloat(document.getElementById('currency-amount')?.value) || 0;
-        let from = document.getElementById('currency-from')?.value;
-        let to = document.getElementById('currency-to')?.value;
-        if (from && to) {
-            let result = (amount / rates[from]) * rates[to];
-            document.getElementById('currency-result').innerHTML = `${result.toFixed(2)} ${to}`;
-        }
-    }
-
-    // منبه
-    let alarmTimeout = null;
-    function setAlarm() {
-        let time = document.getElementById('alarm-time')?.value;
-        if (time) {
-            let now = new Date();
-            let [hours, minutes] = time.split(':');
-            let alarm = new Date();
-            alarm.setHours(parseInt(hours), parseInt(minutes), 0);
-            if (alarm <= now) alarm.setDate(alarm.getDate() + 1);
-            let diff = alarm - now;
-            if (alarmTimeout) clearTimeout(alarmTimeout);
-            alarmTimeout = setTimeout(() => { alert('⏰ تنبيه! حان وقت المنبه'); showNotification('🔔 وقت المنبه!'); }, diff);
-            showNotification(`✅ تم ضبط المنبه على ${time}`);
-        }
-    }
 
     function renderApp(container, appName, winId) {
         if (appName === 'notes') {
@@ -473,13 +253,14 @@
             window[`saveNotes_${winId}`] = () => {
                 let content = document.getElementById(`notes-area-${winId}`).value;
                 localStorage.setItem('notes_content', content);
+                localStorage.setItem('notes_last_saved', new Date().toLocaleString('ar-EG'));
                 showNotification('✅ تم حفظ الملاحظات');
             };
         }
         else if (appName === 'calculator') {
             container.innerHTML = `<input id="calc-display" readonly value="0" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px;">
                 <div class="calc-buttons">
-                    ${'789/456*123-0.=+'.split('').map(b => `<div class="calc-btn" onclick="${b === '/' ? 'performOperation' : b === '*' ? 'performOperation' : b === '-' ? 'performOperation' : b === '+' ? 'performOperation' : b === '=' ? 'performOperation' : b === '.' ? 'inputDecimal' : 'inputDigit'}('${b}')">${b}</div>`).join('')}
+                    ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(b => `<div class="calc-btn" onclick="${b === '/' ? 'performOperation' : b === '*' ? 'performOperation' : b === '-' ? 'performOperation' : b === '+' ? 'performOperation' : b === '=' ? 'performOperation' : b === '.' ? 'inputDecimal' : 'inputDigit'}('${b}')">${b}</div>`).join('')}
                     <div class="calc-btn clear" onclick="clearCalc()">C</div>
                 </div>`;
             updateCalcDisplay();
@@ -493,7 +274,7 @@
                     <div class="calc-btn" onclick="sciInput('9')">9</div><div class="calc-btn" onclick="sciInput('4')">4</div><div class="calc-btn" onclick="sciInput('5')">5</div>
                     <div class="calc-btn" onclick="sciInput('6')">6</div><div class="calc-btn" onclick="sciInput('1')">1</div><div class="calc-btn" onclick="sciInput('2')">2</div>
                     <div class="calc-btn" onclick="sciInput('3')">3</div><div class="calc-btn" onclick="sciInput('0')">0</div><div class="calc-btn" onclick="sciInput('.')">.</div>
-                    <div class="calc-btn clear" onclick="sciClear()">C</div><div class="calc-btn equals" onclick="sciFunction('=')">=</div>
+                    <div class="calc-btn clear" onclick="sciClear()">C</div>
                 </div>`;
         }
         else if (appName === 'files') {
@@ -510,8 +291,10 @@
         }
         else if (appName === 'calendar') {
             let today = new Date();
-            container.innerHTML = `<div class="calendar-header"><button onclick="alert('شهر مضى')">◀</button><h3>${today.toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</h3><button onclick="alert('شهر قادم')">▶</button></div>
-                <div class="calendar-grid">${['ح','ن','ث','ر','خ','ج','س'].map(d=>`<div style="font-weight:bold;">${d}</div>`).join('')}${Array(35).fill().map((_,i)=>`<div class="calendar-day">${i<30?i+1:''}</div>`).join('')}</div>`;
+            let days = [];
+            for(let i=1; i<=31; i++) days.push(i);
+            container.innerHTML = `<div class="calendar-header"><h3>${today.toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</h3></div>
+                <div class="calendar-grid">${['ح','ن','ث','ر','خ','ج','س'].map(d=>`<div style="font-weight:bold;">${d}</div>`).join('')}${days.map(d=>`<div class="calendar-day">${d}</div>`).join('')}</div>`;
         }
         else if (appName === 'tasks') {
             let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -519,10 +302,10 @@
                 <div id="tasks-list-${winId}">${tasks.map((t,i)=>`<div class="task-item ${t.completed?'completed':''}"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask_${winId}(${i})"><span>${t.text}</span><button onclick="deleteTask_${winId}(${i})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:8px;">🗑️</button></div>`).join('')}</div>`;
             window[`addTask_${winId}`] = () => {
                 let input = document.getElementById(`new-task-${winId}`);
-                if(input.value.trim()) { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.push({text:input.value,completed:false}); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); }
+                if(input.value.trim()) { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.push({text:input.value,completed:false}); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); showNotification('✅ تم إضافة المهمة'); }
             };
             window[`toggleTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t[i].completed=!t[i].completed; localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); };
-            window[`deleteTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.splice(i,1); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); };
+            window[`deleteTask_${winId}`] = (i) => { let t=JSON.parse(localStorage.getItem('tasks')||'[]'); t.splice(i,1); localStorage.setItem('tasks',JSON.stringify(t)); openApp('tasks'); showNotification('🗑️ تم حذف المهمة'); };
         }
         else if (appName === 'music') {
             container.innerHTML = `<div style="text-align:center;"><div style="font-size:48px;">🎵</div><audio id="audio-${winId}" controls style="width:100%; margin:10px 0;"></audio>
@@ -550,9 +333,26 @@
                 let ctx = canvas.getContext('2d');
                 canvas.width = 400; canvas.height = 300;
                 ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
                 let drawing = false;
-                let start = (e) => { drawing = true; let rect = canvas.getBoundingClientRect(); let x = (e.clientX||e.touches[0].clientX) - rect.left; let y = (e.clientY||e.touches[0].clientY) - rect.top; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y); ctx.stroke(); };
-                let draw = (e) => { if(!drawing) return; let rect = canvas.getBoundingClientRect(); let x = (e.clientX||e.touches[0].clientX) - rect.left; let y = (e.clientY||e.touches[0].clientY) - rect.top; ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); };
+                let start = (e) => { 
+                    drawing = true; 
+                    let rect = canvas.getBoundingClientRect();
+                    let scaleX = canvas.width / rect.width;
+                    let scaleY = canvas.height / rect.height;
+                    let x = ((e.clientX||e.touches[0].clientX) - rect.left) * scaleX;
+                    let y = ((e.clientY||e.touches[0].clientY) - rect.top) * scaleY;
+                    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y); ctx.stroke(); 
+                };
+                let draw = (e) => { 
+                    if(!drawing) return; 
+                    let rect = canvas.getBoundingClientRect();
+                    let scaleX = canvas.width / rect.width;
+                    let scaleY = canvas.height / rect.height;
+                    let x = ((e.clientX||e.touches[0].clientX) - rect.left) * scaleX;
+                    let y = ((e.clientY||e.touches[0].clientY) - rect.top) * scaleY;
+                    ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); 
+                };
                 let stop = () => { drawing = false; ctx.beginPath(); };
                 canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop);
                 canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop);
@@ -565,7 +365,16 @@
                 <button onclick="setAlarm_${winId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">✅ ضبط المنبه</button></div>`;
             window[`setAlarm_${winId}`] = () => {
                 let time = document.getElementById(`alarm-time-${winId}`).value;
-                if(time) { let now = new Date(); let [h,m] = time.split(':'); let alarm = new Date(); alarm.setHours(h,m,0); if(alarm<=now) alarm.setDate(alarm.getDate()+1); let diff = alarm-now; setTimeout(()=>{ alert('⏰ وقت المنبه!'); showNotification('🔔 وقت المنبه!'); }, diff); showNotification(`✅ تم ضبط المنبه على ${time}`); }
+                if(time) { 
+                    let now = new Date(); 
+                    let [h,m] = time.split(':'); 
+                    let alarm = new Date(); 
+                    alarm.setHours(parseInt(h), parseInt(m), 0); 
+                    if(alarm<=now) alarm.setDate(alarm.getDate()+1); 
+                    let diff = alarm-now; 
+                    setTimeout(()=>{ alert('⏰ وقت المنبه!'); showNotification('🔔 وقت المنبه!'); }, diff); 
+                    showNotification(`✅ تم ضبط المنبه على ${time}`); 
+                }
             };
         }
         else if (appName === 'currency') {
@@ -596,14 +405,16 @@
             for(let i=0;i<localStorage.length;i++) totalSize += (localStorage.key(i).length + localStorage.getItem(localStorage.key(i)).length)*2;
             container.innerHTML = `<div><div>⚙️ الإعدادات</div><div>💾 التخزين: ${(totalSize/1048576).toFixed(2)} MB</div>
                 <div>🎨 الوضع: ${document.body.classList.contains('light-mode')?'نهار ☀️':'ليل 🌙'}</div>
+                <div>📱 الجهاز: ${/Mobi/.test(navigator.userAgent)?'جوال':'حاسوب'}</div>
                 <button onclick="clearAllData_${winId}()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
-                <button onclick="exportData_${winId}()" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير</button></div>`;
-            window[`clearAllData_${winId}`] = () => { if(confirm('مسح جميع البيانات؟')){ localStorage.clear(); showNotification('✅ تم المسح'); setTimeout(()=>location.reload(),1000); } };
-            window[`exportData_${winId}`] = () => { let d={}; for(let i=0;i<localStorage.length;i++) d[localStorage.key(i)]=localStorage.getItem(localStorage.key(i)); let b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`v8_backup_${Date.now()}.json`; a.click(); showNotification('✅ تم التصدير'); };
+                <button onclick="exportData_${winId}()" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير البيانات</button></div>`;
+            window[`clearAllData_${winId}`] = () => { if(confirm('مسح جميع البيانات؟')){ localStorage.clear(); showNotification('✅ تم مسح جميع البيانات'); setTimeout(()=>location.reload(),1000); } };
+            window[`exportData_${winId}`] = () => { let d={}; for(let i=0;i<localStorage.length;i++) d[localStorage.key(i)]=localStorage.getItem(localStorage.key(i)); let b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`v8_backup_${Date.now()}.json`; a.click(); showNotification('✅ تم تصدير البيانات'); };
         }
     }
 
     // سحب النوافذ
+    let activeDrag = null;
     function startDrag(event, winId) {
         event.preventDefault();
         let win = windows.find(w => w.id === winId);
@@ -613,17 +424,23 @@
         let clientY = event.touches ? event.touches[0].clientY : event.clientY;
         let offsetX = clientX - rect.left;
         let offsetY = clientY - rect.top;
+        activeDrag = { win, offsetX, offsetY };
+        
         function onMove(e) {
+            if(!activeDrag) return;
             let cx = e.touches ? e.touches[0].clientX : e.clientX;
             let cy = e.touches ? e.touches[0].clientY : e.clientY;
-            let newX = cx - offsetX;
-            let newY = cy - offsetY;
-            newX = Math.max(0, Math.min(newX, window.innerWidth - rect.width));
-            newY = Math.max(0, Math.min(newY, window.innerHeight - rect.height - 55));
-            win.element.style.left = newX + 'px';
-            win.element.style.top = newY + 'px';
+            let newX = cx - activeDrag.offsetX;
+            let newY = cy - activeDrag.offsetY;
+            let maxX = window.innerWidth - activeDrag.win.element.offsetWidth;
+            let maxY = window.innerHeight - activeDrag.win.element.offsetHeight - 55;
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+            activeDrag.win.element.style.left = newX + 'px';
+            activeDrag.win.element.style.top = newY + 'px';
         }
         function onStop() {
+            activeDrag = null;
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onStop);
             document.removeEventListener('touchmove', onMove);
@@ -633,11 +450,6 @@
         document.addEventListener('mouseup', onStop);
         document.addEventListener('touchmove', onMove);
         document.addEventListener('touchend', onStop);
-    }
-
-    function closeWindow(winId) {
-        let win = windows.find(w => w.id === winId);
-        if(win) { win.element.remove(); windows = windows.filter(w => w.id !== winId); }
     }
 
     loadDesktopIcons();
