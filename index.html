@@ -1067,4 +1067,129 @@ class AlarmComponent {
 // 9.11 Currency Converter
 class CurrencyComponent {
     constructor({ windowId, context }) {
-        this.windowId = window
+        this.windowId = windowId; this.context = context;
+        this.rates = { USD:1, EUR:0.92, GBP:0.78, SAR:3.75, EGP:48.5, AED:3.67, JOD:0.71, KWD:0.31 };
+    }
+    convert() { const amt = parseFloat(document.getElementById(`curr-amount-${this.windowId}`).value) || 0; const from = document.getElementById(`curr-from-${this.windowId}`).value; const to = document.getElementById(`curr-to-${this.windowId}`).value; const result = (amt / this.rates[from]) * this.rates[to]; document.getElementById(`curr-result-${this.windowId}`).innerHTML = `${result.toFixed(2)} ${to}`; }
+    render() { return `<div><input type="number" id="curr-amount-${this.windowId}" placeholder="المبلغ" value="1" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; margin-bottom:10px;" oninput="window._convert_${this.windowId}()"><div style="display:flex; gap:10px;"><select id="curr-from-${this.windowId}" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:12px;">${Object.keys(this.rates).map(c => `<option value="${c}">${c}</option>`).join('')}</select><span style="font-size:20px;">→</span><select id="curr-to-${this.windowId}" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:12px;">${Object.keys(this.rates).map(c => `<option value="${c}">${c}</option>`).join('')}</select></div><div id="curr-result-${this.windowId}" style="margin-top:15px; padding:15px; background:#f0f0f0; border-radius:12px; text-align:center; font-size:18px; font-weight:bold;">1 USD</div></div>`; }
+    bindEvents() { window[`_convert_${this.windowId}`] = () => this.convert(); setTimeout(() => this.convert(), 100); }
+}
+
+// 9.12 Browser App
+class BrowserComponent {
+    constructor({ windowId, context }) {
+        this.windowId = windowId; this.context = context;
+    }
+    loadWeb() { const url = document.getElementById(`browser-url-${this.windowId}`).value; document.getElementById(`browser-frame-${this.windowId}`).src = url.startsWith('http') ? url : 'https://' + url; }
+    back() { const frame = document.getElementById(`browser-frame-${this.windowId}`); if(frame.contentWindow) frame.contentWindow.history.back(); }
+    forward() { const frame = document.getElementById(`browser-frame-${this.windowId}`); if(frame.contentWindow) frame.contentWindow.history.forward(); }
+    refresh() { const frame = document.getElementById(`browser-frame-${this.windowId}`); if(frame.contentWindow) frame.contentWindow.location.reload(); }
+    render() { return `<div style="display:flex; gap:8px; margin-bottom:12px;"><button id="browser-back-${this.windowId}" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">◀</button><button id="browser-forward-${this.windowId}" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">▶</button><button id="browser-refresh-${this.windowId}" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">🔄</button></div><input type="text" id="browser-url-${this.windowId}" placeholder="https://google.com" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; margin-bottom:12px;"><button onclick="window._loadWeb_${this.windowId}()" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px; margin-bottom:12px;">🔍 بحث</button><iframe id="browser-frame-${this.windowId}" style="width:100%; height:300px; border:1px solid #ddd; border-radius:12px;"></iframe>`; }
+    bindEvents() { window[`_loadWeb_${this.windowId}`] = () => this.loadWeb(); document.getElementById(`browser-back-${this.windowId}`).onclick = () => this.back(); document.getElementById(`browser-forward-${this.windowId}`).onclick = () => this.forward(); document.getElementById(`browser-refresh-${this.windowId}`).onclick = () => this.refresh(); }
+}
+
+// 9.13 Settings App
+class SettingsComponent {
+    constructor({ windowId, context }) {
+        this.windowId = windowId; this.context = context;
+    }
+    async clearData() { if(confirm('مسح جميع البيانات؟')) { localStorage.clear(); await this.context.get('storage').clear('notes'); await this.context.get('storage').clear('tasks'); await this.context.get('storage').clear('gallery'); this.context.get('eventBus').emit('notification', { message: '✅ تم مسح البيانات', type: 'success' }); setTimeout(() => location.reload(), 1000); } }
+    async closeAllWindows() { await this.context.get('windowManager').closeAllWindows(); this.context.get('eventBus').emit('notification', { message: '✅ تم إغلاق جميع النوافذ', type: 'success' }); }
+    async saveSession() { await this.context.get('windowManager').saveSession(); this.context.get('eventBus').emit('notification', { message: '✅ تم حفظ الجلسة', type: 'success' }); }
+    async restoreSession() { const restored = await this.context.get('windowManager').restoreSession(); this.context.get('eventBus').emit('notification', { message: restored ? '✅ تم استعادة الجلسة' : 'لا توجد جلسة سابقة', type: restored ? 'success' : 'warning' }); }
+    render() { let total = 0; for(let i=0;i<localStorage.length;i++) total += (localStorage.key(i).length + (localStorage.getItem(localStorage.key(i))||'').length)*2; return `<div><div style="margin:15px 0;">⚙️ إعدادات V9.0</div><div style="margin:15px 0;">💾 التخزين: ${(total/1048576).toFixed(2)} MB</div><div style="margin:15px 0;">🪟 النوافذ: ${this.context.get('windowManager').getWindowCount()}</div><div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode')?'نهار ☀️':'ليل 🌙'}</div><button onclick="window._clearData_${this.windowId}()" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button><button onclick="window._closeAll_${this.windowId}()" style="width:100%; padding:14px; background:#667eea; color:white; border:none; border-radius:16px; margin-top:10px;">❌ إغلاق جميع النوافذ</button><button onclick="window._saveSession_${this.windowId}()" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">💾 حفظ الجلسة</button><button onclick="window._restoreSession_${this.windowId}()" style="width:100%; padding:14px; background:#17a2b8; color:white; border:none; border-radius:16px; margin-top:10px;">🔄 استعادة الجلسة</button></div>`; }
+    bindEvents() { window[`_clearData_${this.windowId}`] = () => this.clearData(); window[`_closeAll_${this.windowId}`] = () => this.closeAllWindows(); window[`_saveSession_${this.windowId}`] = () => this.saveSession(); window[`_restoreSession_${this.windowId}`] = () => this.restoreSession(); }
+}
+
+// ---------- 10. UI Renderer ----------
+class V9UIRenderer {
+    constructor(context) {
+        this.context = context;
+        this._clockInterval = null;
+        this._cleanups = [];
+    }
+    
+    renderDesktopIcons() {
+        const container = document.getElementById('desktopIcons');
+        const apps = [
+            { id: 'notes', name: '📝 مفكرة', icon: '📝' },
+            { id: 'calculator', name: '🔢 حاسبة', icon: '🔢' },
+            { id: 'scientific', name: '📊 حاسبة علمية', icon: '📊' },
+            { id: 'files', name: '📁 ملفات', icon: '📁' },
+            { id: 'calendar', name: '📅 تقويم', icon: '📅' },
+            { id: 'tasks', name: '✅ مهام', icon: '✅' },
+            { id: 'music', name: '🎵 مشغل موسيقى', icon: '🎵' },
+            { id: 'gallery', name: '🖼️ معرض صور', icon: '🖼️' },
+            { id: 'draw', name: '🎨 رسم', icon: '🎨' },
+            { id: 'alarm', name: '⏰ منبه', icon: '⏰' },
+            { id: 'currency', name: '🧮 تحويل عملات', icon: '🧮' },
+            { id: 'browser', name: '🌐 متصفح', icon: '🌐' },
+            { id: 'settings', name: '⚙️ إعدادات', icon: '⚙️' }
+        ];
+        container.innerHTML = apps.map(app => `<div class="desktop-icon clickable" data-app-id="${app.id}"><div class="icon">${app.icon}</div><div class="label">${app.name}</div></div>`).join('');
+        document.querySelectorAll('.desktop-icon').forEach(icon => { icon.addEventListener('click', () => { const appId = icon.getAttribute('data-app-id'); this.context.get('windowManager').createWindow(appId); this.context.get('eventBus').emit('notification', { message: `🚀 فتح ${appId}`, type: 'info' }); }); });
+    }
+    
+    updateClock() { const update = () => { document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}); }; update(); this._clockInterval = this.context.setInterval(update, 1000); }
+    initBattery() { if('getBattery' in navigator) { navigator.getBattery().then(b => { const update = () => { const lvl = Math.round(b.level * 100); document.getElementById('batteryStatus').innerHTML = b.charging ? `⚡ ${lvl}%` : `🔋 ${lvl}%`; }; update(); b.addEventListener('levelchange', update); b.addEventListener('chargingchange', update); }); } }
+    initNetwork() { const update = () => { document.getElementById('networkStatus').innerHTML = navigator.onLine ? '📶 Online' : '📡 Offline'; }; update(); window.addEventListener('online', update); window.addEventListener('offline', update); }
+    initTheme() { document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('light-mode'); document.getElementById('themeToggle').innerHTML = document.body.classList.contains('light-mode') ? '☀️' : '🌙'; this.context.get('eventBus').emit('notification', { message: document.body.classList.contains('light-mode') ? '✅ وضع النهار' : '✅ وضع الليل', type: 'success' }); }; }
+    initStartMenu() { document.getElementById('startMenu').onclick = () => { this.context.get('eventBus').emit('notification', { message: `☁️ V9.0 | نوافذ: ${this.context.get('windowManager').getWindowCount()} | مستمعين: ${this.context.get('eventBus').getListenerCount()}`, type: 'info' }); }; }
+    initNavigation() { document.getElementById('navBack').onclick = () => { if(this.context.get('navigation').canGoBack()) { this.context.get('navigation').back(); this.context.get('eventBus').emit('notification', { message: '◀ رجوع', type: 'info' }); } else { this.context.get('eventBus').emit('notification', { message: 'لا توجد صفحة سابقة', type: 'warning' }); } }; document.getElementById('navForward').onclick = () => { if(this.context.get('navigation').canGoForward()) { this.context.get('navigation').forward(); this.context.get('eventBus').emit('notification', { message: 'تقدم ▶', type: 'info' }); } else { this.context.get('eventBus').emit('notification', { message: 'لا توجد صفحة تالية', type: 'warning' }); } }; document.getElementById('navRefresh').onclick = () => location.reload(); }
+    initNotifications() { this.context.get('eventBus').on('notification', (data) => { const colors = { success:'#28a745', error:'#dc3545', warning:'#ffc107', info:'#667eea', important:'#9c27b0' }; const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️', important:'🔔' }; const n = document.createElement('div'); n.className = 'notification'; n.innerHTML = `${icons[data.type||'info']} ${V9Sanitizer.escape(data.message)}`; n.style.borderRight = `4px solid ${colors[data.type||'info']}`; document.body.appendChild(n); setTimeout(() => n.remove(), 2500); }); }
+}
+
+// ---------- 11. Kernel Initialization ----------
+async function initV9() {
+    console.log('%c🚀 V9.0 Full Enterprise Kernel initializing...', 'color:#667eea;font-size:14px;font-weight:bold');
+    
+    const context = new V9Context();
+    context.register('eventBus', new V9EventBus());
+    context.register('renderQueue', new V9RenderQueue());
+    context.register('storage', new V9Storage());
+    
+    await context.get('storage').init();
+    
+    context.register('appRegistry', new V9AppRegistry(context));
+    context.register('windowManager', new V9WindowManager(context));
+    context.register('navigation', new V9NavigationStack(context));
+    context.register('uiRenderer', new V9UIRenderer(context));
+    context.get('renderQueue').context = context;
+    
+    const appRegistry = context.get('appRegistry');
+    appRegistry.register('notes', { name: '📝 مفكرة', icon: '📝', component: NotesComponent });
+    appRegistry.register('calculator', { name: '🔢 حاسبة', icon: '🔢', component: CalculatorComponent });
+    appRegistry.register('scientific', { name: '📊 حاسبة علمية', icon: '📊', component: ScientificComponent });
+    appRegistry.register('files', { name: '📁 ملفات', icon: '📁', component: FilesComponent });
+    appRegistry.register('calendar', { name: '📅 تقويم', icon: '📅', component: CalendarComponent });
+    appRegistry.register('tasks', { name: '✅ مهام', icon: '✅', component: TasksComponent });
+    appRegistry.register('music', { name: '🎵 مشغل موسيقى', icon: '🎵', component: MusicComponent });
+    appRegistry.register('gallery', { name: '🖼️ معرض صور', icon: '🖼️', component: GalleryComponent });
+    appRegistry.register('draw', { name: '🎨 رسم', icon: '🎨', component: DrawingComponent });
+    appRegistry.register('alarm', { name: '⏰ منبه', icon: '⏰', component: AlarmComponent });
+    appRegistry.register('currency', { name: '🧮 تحويل عملات', icon: '🧮', component: CurrencyComponent });
+    appRegistry.register('browser', { name: '🌐 متصفح', icon: '🌐', component: BrowserComponent });
+    appRegistry.register('settings', { name: '⚙️ إعدادات', icon: '⚙️', component: SettingsComponent });
+    
+    const uiRenderer = context.get('uiRenderer');
+    uiRenderer.renderDesktopIcons();
+    uiRenderer.updateClock();
+    uiRenderer.initBattery();
+    uiRenderer.initNetwork();
+    uiRenderer.initTheme();
+    uiRenderer.initStartMenu();
+    uiRenderer.initNavigation();
+    uiRenderer.initNotifications();
+    
+    context.get('eventBus').emit('notification', { message: '✨ V9.0 Full Edition جاهز', type: 'success' });
+    console.log('%c✅ V9.0 Full Enterprise Kernel Ready - 13 Apps Loaded', 'color:#28a745;font-size:14px;font-weight:bold');
+    
+    setTimeout(async () => { const restored = await context.get('windowManager').restoreSession(); if (!restored && context.get('windowManager').getWindowCount() === 0) await context.get('windowManager').createWindow('notes', { x: 100, y: 100 }); }, 500);
+    
+    return context;
+}
+
+initV9().catch(console.error);
+</script>
+</body>
+</html>
