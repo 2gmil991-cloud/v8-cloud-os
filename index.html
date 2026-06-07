@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>V10 Cloud OS | الإصدار النهائي الكامل</title>
+    <title>V10.5 Cloud OS | الإصدار النهائي المتكامل</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); overflow: hidden; height: 100vh; width: 100vw; transition: background 0.3s; }
         body.light-mode { background: #f5f5f5; }
         body.light-mode .taskbar { background: rgba(255,255,255,0.95); color: #333; }
@@ -13,7 +13,6 @@
         body.light-mode .window { background: white; }
         body.power-saving { filter: brightness(0.95) contrast(0.95); transition: filter 0.3s; }
         
-        /* خلفيات مخصصة */
         body.bg-ocean { background: linear-gradient(135deg, #006994 0%, #003366 100%); }
         body.bg-forest { background: linear-gradient(135deg, #228B22 0%, #006400 100%); }
         body.bg-sunset { background: linear-gradient(135deg, #FF7E5F 0%, #FEB47B 100%); }
@@ -27,14 +26,17 @@
         .taskbar-right { display: flex; gap: 8px; align-items: center; font-size: 12px; }
         .start-menu, .theme-toggle, .nav-btn, .taskbar-icon { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 30px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
         .start-menu:active, .theme-toggle:active, .nav-btn:active, .taskbar-icon:active { transform: scale(0.95); }
-        .taskbar-app-icon { background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .taskbar-app-icon { background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
         
         .desktop-icons { position: absolute; top: 20px; left: 20px; right: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 20px; z-index: 10; padding-bottom: 80px; overflow-y: auto; max-height: calc(100vh - 90px); }
         .desktop-icons::-webkit-scrollbar { width: 3px; }
+        .desktop-icons::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .desktop-icons::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
         .desktop-icon { width: 85px; text-align: center; cursor: pointer; padding: 12px 8px; border-radius: 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); transition: all 0.2s; margin: 0 auto; }
-        .desktop-icon:active { transform: scale(0.95); }
+        .desktop-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
         .desktop-icon .icon { font-size: 44px; margin-bottom: 8px; }
         .desktop-icon .label { color: white; font-size: 11px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .desktop-icon.removed { display: none; }
         
         .window { position: absolute; background: white; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 92%; max-width: 550px; min-height: 450px; max-height: 85vh; z-index: 100; display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s; }
         .window.minimized { display: none; }
@@ -46,6 +48,7 @@
         .window-btn:active { transform: scale(0.9); }
         .window-minimize { background: rgba(255,255,255,0.2); }
         .window-close { background: rgba(255,80,80,0.6); }
+        .window-resize { position: absolute; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: se-resize; background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.2) 50%); border-radius: 0 0 20px 0; }
         .window-content { padding: 20px; flex: 1; overflow-y: auto; }
         
         .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; z-index: 3000; font-size: 14px; animation: slideDown 0.3s ease; max-width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
@@ -54,27 +57,35 @@
         .notification-center { position: fixed; top: 70px; right: 20px; width: 320px; max-height: 400px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; overflow: auto; display: none; }
         .notification-center.show { display: block; }
         .notif-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .notif-item:hover { background: #f5f5f5; }
         
-        .search-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; }
+        .search-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 4000; display: none; align-items: center; justify-content: center; }
         .search-overlay.show { display: flex; }
         .search-box { background: white; border-radius: 60px; padding: 20px; width: 90%; max-width: 500px; }
-        .search-box input { width: 100%; padding: 15px; font-size: 18px; border: none; outline: none; border-radius: 40px; background: #f0f0f0; }
+        .search-box input { width: 100%; padding: 15px; font-size: 18px; border: none; outline: none; border-radius: 40px; background: #f0f0f0; text-align: right; }
         .search-results { margin-top: 15px; max-height: 300px; overflow-y: auto; }
-        .search-result { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .search-result { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .search-result:hover { background: #f5f5f5; }
         
         .lock-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea, #764ba2); z-index: 5000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         .lock-screen.show { display: flex; }
         .lock-screen input { padding: 15px; font-size: 18px; border-radius: 30px; border: none; width: 250px; text-align: center; margin-top: 20px; }
+        .lock-screen button { margin-top: 15px; padding: 12px 30px; background: white; color: #667eea; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; }
         
         .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .game-card { background: #f0f0f0; border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; }
-        .ttt-cell { width: 60px; height: 60px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 30px; border-radius: 12px; cursor: pointer; }
+        .game-card { background: #f0f0f0; border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .game-card:active { transform: scale(0.95); }
+        .ttt-cell { width: 60px; height: 60px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 30px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .ttt-cell:active { transform: scale(0.95); background: #e0e0e0; }
+        .memory-card { width: 70px; height: 70px; background: #667eea; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; transition: all 0.2s; }
+        .memory-card.flipped { background: white; }
+        .memory-card.matched { visibility: hidden; opacity: 0; cursor: default; }
         
-        .chat-messages { height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
-        .chat-message { padding: 8px; margin: 5px 0; background: #f0f0f0; border-radius: 12px; }
+        .chat-messages { height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 12px; padding: 10px; margin-bottom: 10px; background: #fafafa; }
+        .chat-message { padding: 8px 12px; margin: 5px 0; background: white; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         
         @media (max-width: 768px) {
-            .desktop-icons { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; }
+            .desktop-icons { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; top: 15px; left: 15px; right: 15px; }
             .desktop-icon { width: 70px; padding: 10px 5px; }
             .desktop-icon .icon { font-size: 36px; }
             .window { width: 95%; max-width: 95%; left: 2.5% !important; border-radius: 24px; }
@@ -88,14 +99,15 @@
         
         button, .clickable { cursor: pointer; transition: transform 0.1s ease; }
         button:active, .clickable:active { transform: scale(0.97); }
-        input, textarea, select { font-family: inherit; border: 1px solid #ddd; border-radius: 12px; padding: 12px; width: 100%; margin-bottom: 10px; }
+        input, textarea, select { font-family: inherit; border: 1px solid #ddd; border-radius: 12px; padding: 12px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        button { border: none; background: none; font-family: inherit; }
     </style>
 </head>
 <body>
 
 <div class="taskbar">
     <div class="taskbar-left">
-        <div class="start-menu clickable" id="startMenu">☁️ V10</div>
+        <div class="start-menu clickable" id="startMenu">☁️ V10.5</div>
         <div class="nav-btn clickable" id="navBack">◀</div>
         <div class="nav-btn clickable" id="navForward">▶</div>
         <div class="nav-btn clickable" id="navRefresh">🔄</div>
@@ -123,14 +135,14 @@
 </div>
 <div id="lockScreen" class="lock-screen">
     <div style="font-size: 80px;">🔒</div>
-    <h2 style="color:white;">V10 Cloud OS</h2>
+    <h2 style="color:white;">V10.5 Cloud OS</h2>
     <input type="password" id="lockPassword" placeholder="كلمة المرور">
-    <button id="unlockBtn" style="margin-top:15px; padding:12px 30px; background:#667eea; color:white; border:none; border-radius:30px;">فتح</button>
+    <button id="unlockBtn">فتح</button>
 </div>
 
 <script>
 // ============================================
-// V10.0 FULL OS - 23 APPS + ALL FEATURES
+// V10.5 FULL OS - جميع الميزات مفعلة وجاهزة
 // ============================================
 
 let openWindows = [];
@@ -142,12 +154,17 @@ let lockPassword = "1234";
 let powerSavingMode = false;
 let activeWallpaper = "default";
 let chatHistory = JSON.parse(localStorage.getItem('chat_history') || '[]');
+let removedIcons = JSON.parse(localStorage.getItem('removed_icons') || '[]');
+let memoryCards = [];
+let memoryFlipped = [];
+let memoryLocked = false;
 
 // ========== الإشعارات ==========
 function showNotification(msg, type = 'info') {
     const n = document.createElement('div');
     n.className = 'notification';
-    n.innerHTML = `${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'} ${msg}`;
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+    n.innerHTML = `${icon} ${msg}`;
     document.body.appendChild(n);
     notificationHistory.unshift({ msg, type, time: new Date().toLocaleTimeString() });
     if(notificationHistory.length > 50) notificationHistory.pop();
@@ -157,9 +174,10 @@ function showNotification(msg, type = 'info') {
 
 function updateNotificationCenter() {
     const container = document.getElementById('notificationCenter');
-    container.innerHTML = `<div style="padding:12px; background:#667eea; color:white; border-radius:20px 20px 0 0;">📋 مركز الإشعارات <span style="float:left; cursor:pointer;" onclick="document.getElementById('notificationCenter').classList.remove('show')">✕</span></div>` + 
+    if(!container) return;
+    container.innerHTML = `<div style="padding:12px; background:#667eea; color:white; border-radius:20px 20px 0 0; display:flex; justify-content:space-between;"><span>📋 مركز الإشعارات</span><span style="cursor:pointer;" onclick="document.getElementById('notificationCenter').classList.remove('show')">✕</span></div>` + 
         (notificationHistory.length === 0 ? '<div style="padding:20px; text-align:center; color:#999;">لا توجد إشعارات</div>' :
-        notificationHistory.map(n => `<div class="notif-item">${n.type === 'success' ? '✅' : n.type === 'error' ? '❌' : 'ℹ️'} ${n.msg}<br><small style="color:#999;">${n.time}</small></div>`).join(''));
+        notificationHistory.map(n => `<div class="notif-item"><div>${n.type === 'success' ? '✅' : n.type === 'error' ? '❌' : 'ℹ️'} ${n.msg}</div><small style="color:#999;">${n.time}</small></div>`).join(''));
 }
 document.getElementById('notifCenterBtn').onclick = () => document.getElementById('notificationCenter').classList.toggle('show');
 
@@ -197,20 +215,16 @@ function togglePowerSaving() {
 }
 
 // ========== خلفيات مخصصة ==========
-const wallpapers = {
-    default: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    ocean: 'linear-gradient(135deg, #006994 0%, #003366 100%)',
-    forest: 'linear-gradient(135deg, #228B22 0%, #006400 100%)',
-    sunset: 'linear-gradient(135deg, #FF7E5F 0%, #FEB47B 100%)',
-    night: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
-    rose: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-    mountain: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)'
-};
 function changeWallpaper(wallpaper) {
     activeWallpaper = wallpaper;
-    document.body.style.background = wallpapers[wallpaper];
-    document.body.classList.remove('bg-ocean', 'bg-forest', 'bg-sunset', 'bg-night', 'bg-rose', 'bg-mountain');
-    if (wallpaper !== 'default') document.body.classList.add(`bg-${wallpaper}`);
+    if(wallpaper === 'default') {
+        document.body.style.background = '';
+        document.body.classList.remove('bg-ocean', 'bg-forest', 'bg-sunset', 'bg-night', 'bg-rose', 'bg-mountain');
+    } else {
+        document.body.style.background = '';
+        document.body.classList.remove('bg-ocean', 'bg-forest', 'bg-sunset', 'bg-night', 'bg-rose', 'bg-mountain');
+        document.body.classList.add(`bg-${wallpaper}`);
+    }
     showNotification(`🖼️ تم تغيير الخلفية إلى ${wallpaper}`, 'success');
 }
 
@@ -220,7 +234,7 @@ document.getElementById('themeToggle').onclick = () => {
     document.getElementById('themeToggle').innerHTML = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
     showNotification(document.body.classList.contains('light-mode') ? 'وضع النهار ☀️' : 'وضع الليل 🌙', 'success');
 };
-document.getElementById('startMenu').onclick = () => showNotification('☁️ V10 Cloud OS - الإصدار النهائي | 23 تطبيق + 15 ميزة', 'info');
+document.getElementById('startMenu').onclick = () => showNotification('☁️ V10.5 Cloud OS - 23 تطبيق و25 ميزة | جميع الميزات مفعلة', 'info');
 
 // ========== البحث العالمي ==========
 document.getElementById('searchBtn').onclick = () => document.getElementById('searchOverlay').classList.add('show');
@@ -228,8 +242,9 @@ document.getElementById('searchOverlay').onclick = (e) => { if(e.target === docu
 document.getElementById('searchInput').oninput = (e) => {
     const term = e.target.value.toLowerCase();
     const results = apps.filter(a => a.name.toLowerCase().includes(term) || a.id.includes(term));
-    document.getElementById('searchResults').innerHTML = results.length === 0 ? '<div style="padding:12px;">لا توجد نتائج</div>' : 
-        results.map(r => `<div class="search-result" data-app="${r.id}">${r.icon} ${r.name}</div>`).join('');
+    const container = document.getElementById('searchResults');
+    if(container) container.innerHTML = results.length === 0 ? '<div style="padding:12px;">لا توجد نتائج</div>' : 
+        results.map(r => `<div class="search-result" data-app="${r.id}"><span style="font-size:24px;">${r.icon}</span> ${r.name}</div>`).join('');
     document.querySelectorAll('.search-result').forEach(el => {
         el.onclick = () => { const app = apps.find(a => a.id === el.getAttribute('data-app')); if(app && app.func) app.func(); document.getElementById('searchOverlay').classList.remove('show'); };
     });
@@ -253,46 +268,59 @@ function exportData() {
     const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `v10_backup_${Date.now()}.json`;
+    link.download = `v105_backup_${Date.now()}.json`;
     link.click();
     showNotification('💾 تم تصدير البيانات', 'success');
 }
 function importData(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
-        const data = JSON.parse(e.target.result);
-        Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
-        showNotification('✅ تم استيراد البيانات بنجاح', 'success');
-        setTimeout(() => location.reload(), 1000);
+        try {
+            const data = JSON.parse(e.target.result);
+            Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+            showNotification('✅ تم استيراد البيانات بنجاح', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } catch(err) { showNotification('❌ ملف غير صالح', 'error'); }
     };
     reader.readAsText(file);
 }
 
-// ========== إدارة النوافذ ==========
-function createWindow(title, content, width = 450, height = 500) {
+// ========== إدارة النوافذ مع تغيير الحجم ==========
+function createWindow(title, content, width = 480, height = 520) {
     const winId = `win_${Date.now()}_${++windowCounter}`;
-    const left = 50 + (openWindows.length * 15);
-    const top = 80 + (openWindows.length * 10);
-    const winHtml = `<div id="${winId}" class="window" style="left:${Math.min(left, window.innerWidth-100)}px; top:${Math.min(top, window.innerHeight-200)}px; width:${width}px; min-height:${height}px; z-index:${nextZIndex++}"><div class="window-header"><div class="window-title">${title}</div><div class="window-controls"><div class="window-btn window-minimize">─</div><div class="window-btn window-close">✕</div></div></div><div class="window-content" id="content-${winId}">${content}</div></div>`;
+    const left = Math.min(50 + (openWindows.length * 20), window.innerWidth - width - 20);
+    const top = Math.min(80 + (openWindows.length * 15), window.innerHeight - height - 100);
+    const winHtml = `<div id="${winId}" class="window" style="left:${Math.max(10, left)}px; top:${Math.max(10, top)}px; width:${width}px; min-height:${height}px; z-index:${nextZIndex++}"><div class="window-header"><div class="window-title">${title}</div><div class="window-controls"><div class="window-btn window-minimize">─</div><div class="window-btn window-close">✕</div></div></div><div class="window-content" id="content-${winId}">${content}</div><div class="window-resize" data-win="${winId}"></div></div>`;
     document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
     const win = document.getElementById(winId);
     const closeBtn = win.querySelector('.window-close');
     const minBtn = win.querySelector('.window-minimize');
     const header = win.querySelector('.window-header');
+    const resizeHandle = win.querySelector('.window-resize');
+    
     closeBtn.onclick = () => { win.remove(); openWindows = openWindows.filter(w => w !== winId); updateTaskbarApps(); };
     minBtn.onclick = () => { win.classList.add('minimized'); minimizedApps.push({id:winId, title}); updateTaskbarApps(); };
+    
+    // سحب النافذة
     let drag = false, sx, sy, lx, ly;
-    header.onmousedown = (e) => { if(e.target.closest('.window-controls')) return; drag=true; sx=e.clientX; sy=e.clientY; lx=win.offsetLeft; ly=win.offsetTop; win.style.zIndex=nextZIndex++; document.onmousemove = (me) => { if(!drag) return; win.style.left = Math.max(0, Math.min(lx+me.clientX-sx, window.innerWidth-win.offsetWidth))+'px'; win.style.top = Math.max(0, Math.min(ly+me.clientY-sy, window.innerHeight-win.offsetHeight-65))+'px'; }; document.onmouseup = () => { drag=false; document.onmousemove=null; }; };
+    header.onmousedown = (e) => { if(e.target.closest('.window-controls')) return; drag=true; sx=e.clientX; sy=e.clientY; lx=win.offsetLeft; ly=win.offsetTop; win.style.zIndex=nextZIndex++; document.onmousemove = (me) => { if(!drag) return; let nx = lx+me.clientX-sx, ny = ly+me.clientY-sy; win.style.left = Math.max(0, Math.min(nx, window.innerWidth-win.offsetWidth))+'px'; win.style.top = Math.max(0, Math.min(ny, window.innerHeight-win.offsetHeight-65))+'px'; }; document.onmouseup = () => { drag=false; document.onmousemove=null; }; };
+    
+    // تغيير الحجم
+    let resize = false, rsx, rsy, rw, rh;
+    resizeHandle.onmousedown = (e) => { e.stopPropagation(); resize=true; rsx=e.clientX; rsy=e.clientY; rw=win.offsetWidth; rh=win.offsetHeight; win.style.transition='none'; document.onmousemove = (me) => { if(!resize) return; let nw = Math.max(300, rw+me.clientX-rsx), nh = Math.max(350, rh+me.clientY-rsy); win.style.width = nw+'px'; win.style.height = nh+'px'; }; document.onmouseup = () => { resize=false; win.style.transition=''; document.onmousemove=null; }; };
+    
     openWindows.push(winId);
     updateTaskbarApps();
+    setTimeout(() => { if(win.querySelector('.window-content')) win.querySelector('.window-content').style.maxHeight = (win.offsetHeight - 70) + 'px'; }, 50);
     return winId;
 }
 
 function updateTaskbarApps() {
     const container = document.getElementById('taskbarApps');
+    if(!container) return;
     const active = openWindows.map(id => ({id, title: document.getElementById(id)?.querySelector('.window-title')?.innerText || 'تطبيق'}));
     const minimized = minimizedApps.filter(m => !openWindows.includes(m.id));
-    container.innerHTML = [...active, ...minimized].map(w => `<div class="taskbar-app-icon" data-id="${w.id}">${w.title}</div>`).join('');
+    container.innerHTML = [...active, ...minimized].map(w => `<div class="taskbar-app-icon" data-id="${w.id}">${w.title.substring(0,15)}</div>`).join('');
     document.querySelectorAll('.taskbar-app-icon').forEach(icon => {
         icon.onclick = () => {
             const id = icon.getAttribute('data-id');
@@ -302,305 +330,70 @@ function updateTaskbarApps() {
     });
 }
 
-// ========== التطبيقات الأساسية (13 تطبيق) ==========
-function openNotes() { createWindow('📝 مفكرة', `<textarea id="notes-text" style="width:100%; height:250px; border:1px solid #ddd; border-radius:16px; padding:12px;">${localStorage.getItem('notes_content')||''}</textarea><button id="save-note" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>`, 400, 450); setTimeout(()=>{document.getElementById('save-note').onclick=()=>{localStorage.setItem('notes_content',document.getElementById('notes-text').value); showNotification('✅ تم الحفظ','success');};},50); }
-function openCalculator() { createWindow('🔢 حاسبة', `<input id="calc-disp" type="text" readonly value="0" style="width:100%; padding:15px; font-size:28px; margin-bottom:12px;"><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">${'789/456*123-0.=+'.split('').map(b=>`<button class="calc-b" data-v="${b}">${b}</button>`).join('')}<button id="calc-c">C</button></div>`, 380, 480); setTimeout(()=>{let v='0',p=0,o=null,w=false;const d=document.getElementById('calc-disp'); const update=()=>d.value=v; const calc=()=>{const cur=parseFloat(v); let r=0; switch(o){case'+':r=p+cur;break;case'-':r=p-cur;break;case'*':r=p*cur;break;case'/':r=cur===0?'خطأ':p/cur;break;} v=r.toString(); if(v==='Infinity'||v==='NaN') v='0'; update();}; document.querySelectorAll('.calc-b').forEach(btn=>{btn.onclick=()=>{const val=btn.getAttribute('data-v'); if(val>='0'&&val<='9'){if(w){v=val;w=false;}else v=v==='0'?val:v+val; update();}else if(val==='.'){if(!v.includes('.')) v+='.'; update();}else if(val==='+'||val==='-'||val==='*'||val==='/'){if(o&&!w)calc(); p=parseFloat(v); o=val; w=true;}else if(val==='='){if(o&&!w)calc(); o=null; w=true;}};}); document.getElementById('calc-c').onclick=()=>{v='0';p=0;o=null;w=false;update();};},50); }
-function openScientific() { createWindow('📊 حاسبة علمية', `<input id="sci-disp" type="text" readonly value="0" style="width:100%; padding:15px; font-size:24px; margin-bottom:12px;"><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0;">${['sin','cos','tan','sqrt','log','ln','pow2'].map(f=>`<button class="sci-f">${f}</button>`).join('')}<button id="sci-c">C</button></div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">${'7894561230.='.split('').map(d=>`<button class="sci-d" data-d="${d}">${d}</button>`).join('')}</div>`, 420, 520); setTimeout(()=>{let sv='0';const d=document.getElementById('sci-disp'); const u=()=>d.value=sv; const sf=(fn)=>{let n=parseFloat(sv); switch(fn){case'sin':sv=Math.sin(n).toString();break;case'cos':sv=Math.cos(n).toString();break;case'tan':sv=Math.tan(n).toString();break;case'sqrt':sv=n>=0?Math.sqrt(n).toString():'خطأ';break;case'log':sv=Math.log10(n).toString();break;case'ln':sv=Math.log(n).toString();break;case'pow2':sv=Math.pow(n,2).toString();break;} if(sv==='NaN'||sv==='Infinity') sv='0'; u();}; document.querySelectorAll('.sci-f').forEach(b=>{b.onclick=()=>sf(b.innerText);}); document.querySelectorAll('.sci-d').forEach(b=>{b.onclick=()=>{const dd=b.getAttribute('data-d'); if(dd==='='){try{sv=eval(sv).toString();}catch(e){sv='0';} u();}else sv=sv==='0'?dd:sv+dd; u();};}); document.getElementById('sci-c').onclick=()=>{sv='0';u();};},50); }
-function openFiles() { let files=JSON.parse(localStorage.getItem('user_files')||'[]'); const rl=()=>{const c=document.getElementById('files-list'); if(c)c.innerHTML=files.length===0?'<p style="text-align:center; color:#999;">لا توجد ملفات</p>':files.map((f,i)=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><span>📄 ${f.name}</span><button class="del-f" data-i="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join(''); document.querySelectorAll('.del-f').forEach(b=>{b.onclick=()=>{files.splice(parseInt(b.getAttribute('data-i')),1); localStorage.setItem('user_files',JSON.stringify(files)); rl(); showNotification('🗑️ تم الحذف','info');};});}; createWindow('📁 ملفات', `<button id="add-f" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ ملف جديد</button><div id="files-list"></div>`, 400, 450); setTimeout(()=>{rl(); document.getElementById('add-f').onclick=()=>{const n=prompt('اسم الملف:'); if(n){files.push({name:n}); localStorage.setItem('user_files',JSON.stringify(files)); rl(); showNotification('✅ تم إنشاء الملف','success');}};},50); }
-function openCalendar() { const today=new Date(); createWindow('📅 تقويم', `<div style="text-align:center;"><h3>${today.toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</h3><div style="display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:15px;">${['ح','ن','ث','ر','خ','ج','س'].map(d=>`<div style="font-weight:bold; text-align:center;">${d}</div>`).join('')}${Array.from({length:35},(_,i)=>i<31?i+1:'').map(d=>`<div style="padding:12px; text-align:center; background:#f0f0f0; border-radius:12px;">${d}</div>`).join('')}</div></div>`, 400, 480); }
-function openTasks() { let tasks=JSON.parse(localStorage.getItem('tasks_v10')||'[]'); const rl=()=>{const c=document.getElementById('tasks-list'); if(c)c.innerHTML=tasks.length===0?'<p style="text-align:center; color:#999;">لا توجد مهام</p>':tasks.map((t,i)=>`<div style="display:flex; align-items:center; gap:10px; padding:12px; border-bottom:1px solid #eee;"><input type="checkbox" class="task-ch" data-i="${i}" ${t.completed?'checked':''} style="width:20px; height:20px;"><span style="flex:1; ${t.completed?'text-decoration:line-through; color:#999;':''}">${t.text}</span><button class="del-t" data-i="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join(''); document.querySelectorAll('.task-ch').forEach(cb=>{cb.onchange=()=>{tasks[parseInt(cb.getAttribute('data-i'))].completed=cb.checked; localStorage.setItem('tasks_v10',JSON.stringify(tasks)); rl();};}); document.querySelectorAll('.del-t').forEach(btn=>{btn.onclick=()=>{tasks.splice(parseInt(btn.getAttribute('data-i')),1); localStorage.setItem('tasks_v10',JSON.stringify(tasks)); rl(); showNotification('🗑️ تم الحذف','info');};});}; createWindow('✅ مهام', `<div style="display:flex; gap:10px; margin-bottom:15px;"><input id="new-t" placeholder="مهمة جديدة..." style="flex:1;"><button id="add-t" style="padding:12px 20px; background:#28a745; color:white; border:none; border-radius:12px;">➕</button></div><div id="tasks-list"></div>`, 400, 480); setTimeout(()=>{rl(); document.getElementById('add-t').onclick=()=>{const inp=document.getElementById('new-t'); if(inp.value.trim()){tasks.push({text:inp.value,completed:false}); localStorage.setItem('tasks_v10',JSON.stringify(tasks)); inp.value=''; rl(); showNotification('✅ تم إضافة المهمة','success');}};},50); }
-function openMusic() { createWindow('🎵 مشغل موسيقى', `<div style="text-align:center;"><div style="font-size:64px;">🎵</div><audio id="music-audio" controls style="width:100%; margin:15px 0;"></audio><input type="file" accept="audio/*" id="music-file" style="width:100%; padding:10px;"><div id="now-playing" style="margin-top:10px; color:#999;"></div></div>`, 400, 480); setTimeout(()=>{document.getElementById('music-file').onchange=(e)=>{const f=e.target.files[0]; if(f){document.getElementById('music-audio').src=URL.createObjectURL(f); document.getElementById('now-playing').innerHTML=`🎶 الآن: ${f.name}`; showNotification('✅ تم تحميل الأغنية','success');}};},50); }
-function openGallery() { let imgs=JSON.parse(localStorage.getItem('gallery')||'[]'); const rg=()=>{const c=document.getElementById('gallery-grid'); if(c)c.innerHTML=imgs.length===0?'<p style="text-align:center; color:#999;">لا توجد صور</p>':imgs.map((_,i)=>`<div class="g-img" data-i="${i}" style="background:#f0f0f0; border-radius:16px; padding:20px; text-align:center; cursor:pointer;"><div style="font-size:48px;">🖼️</div><div>صورة ${i+1}</div></div>`).join(''); document.querySelectorAll('.g-img').forEach(el=>{el.onclick=()=>window.open(imgs[parseInt(el.getAttribute('data-i'))]);});}; createWindow('🖼️ معرض صور', `<button id="add-img" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ إضافة صورة</button><div id="gallery-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:10px;"></div>`, 420, 480); setTimeout(()=>{rg(); document.getElementById('add-img').onclick=()=>{const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange=(e)=>{const f=e.target.files[0]; if(f){const r=new FileReader(); r.onload=(ev)=>{imgs.push(ev.target.result); localStorage.setItem('gallery',JSON.stringify(imgs)); rg(); showNotification('✅ تم إضافة الصورة','success');}; r.readAsDataURL(f);}}; inp.click();};},50); }
-function openDraw() { createWindow('🎨 رسم', `<canvas id="draw-c" width="400" height="300" style="width:100%; background:white; border:1px solid #ddd; border-radius:16px;"></canvas><div style="display:flex; gap:10px; margin-top:12px;"><button id="draw-cl" style="flex:1; padding:12px; background:#dc3545; color:white; border:none; border-radius:12px;">🗑️ مسح</button><button id="draw-sv" style="flex:1; padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">💾 حفظ</button></div>`, 420, 460); setTimeout(()=>{const c=document.getElementById('draw-c'),ctx=c.getContext('2d'); c.width=400; c.height=300; ctx.fillStyle='white'; ctx.fillRect(0,0,c.width,c.height); ctx.strokeStyle='#333'; ctx.lineWidth=2; let draw=false; const start=(e)=>{draw=true; const rect=c.getBoundingClientRect(); const x=((e.clientX||e.touches[0].clientX)-rect.left)*(c.width/rect.width); const y=((e.clientY||e.touches[0].clientY)-rect.top)*(c.height/rect.height); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y); ctx.stroke();}; const move=(e)=>{if(!draw)return; e.preventDefault(); const rect=c.getBoundingClientRect(); const x=((e.clientX||e.touches[0].clientX)-rect.left)*(c.width/rect.width); const y=((e.clientY||e.touches[0].clientY)-rect.top)*(c.height/rect.height); ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y);}; c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); c.addEventListener('mouseup',()=>{draw=false;ctx.beginPath();}); c.addEventListener('touchstart',start); c.addEventListener('touchmove',move); c.addEventListener('touchend',()=>{draw=false;ctx.beginPath();}); document.getElementById('draw-cl').onclick=()=>{ctx.fillStyle='white'; ctx.fillRect(0,0,c.width,c.height);}; document.getElementById('draw-sv').onclick=()=>{const a=document.createElement('a'); a.download=`drawing_${Date.now()}.png`; a.href=c.toDataURL(); a.click(); showNotification('✅ تم حفظ الرسم','success');};},50); }
-function openAlarm() { let to=null; createWindow('⏰ منبه', `<div style="text-align:center;"><div style="font-size:64px;">⏰</div><input type="time" id="alarm-t" style="width:100%; padding:15px; margin:15px 0;"><button id="set-alarm" style="width:100%; padding:15px; background:#28a745; color:white; border:none; border-radius:12px;">✅ ضبط المنبه</button></div>`, 380, 380); setTimeout(()=>{document.getElementById('set-alarm').onclick=()=>{const t=document.getElementById('alarm-t').value; if(t){const n=new Date(),[h,m]=t.split(':'); const a=new Date(); a.setHours(parseInt(h),parseInt(m),0); if(a<=n)a.setDate(a.getDate()+1); const d=a-n; if(to)clearTimeout(to); to=setTimeout(()=>{alert('⏰ وقت المنبه!'); showNotification('🔔 وقت المنبه!','warning');},d); showNotification(`✅ تم ضبط المنبه على ${t}`,'success');}};},50); }
-function openCurrency() { const r={USD:1,EUR:0.92,GBP:0.78,SAR:3.75,EGP:48.5,AED:3.67,JOD:0.71,KWD:0.31}; createWindow('🧮 تحويل عملات', `<div><input type="number" id="curr-amt" value="1" style="width:100%;"><div style="display:flex; gap:10px; margin:10px 0;"><select id="curr-f" style="flex:1;">${Object.keys(r).map(c=>`<option>${c}</option>`).join('')}</select><span>→</span><select id="curr-t" style="flex:1;">${Object.keys(r).map(c=>`<option>${c}</option>`).join('')}</select></div><div id="curr-res" style="padding:15px; background:#f0f0f0; border-radius:12px; text-align:center; font-weight:bold;"></div></div>`, 380, 380); setTimeout(()=>{const cnv=()=>{const a=parseFloat(document.getElementById('curr-amt').value)||0, f=document.getElementById('curr-f').value, t=document.getElementById('curr-t').value, res=(a/r[f])*r[t]; document.getElementById('curr-res').innerHTML=`${res.toFixed(2)} ${t}`;}; document.getElementById('curr-amt').oninput=cnv; document.getElementById('curr-f').onchange=cnv; document.getElementById('curr-t').onchange=cnv; cnv();},50); }
-function openBrowser() { createWindow('🌐 متصفح', `<div style="display:flex; gap:8px; margin-bottom:12px;"><button id="browser-back" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">◀</button><button id="browser-forward" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">▶</button><button id="browser-refresh" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">🔄</button></div><input type="text" id="browser-url" placeholder="https://google.com" style="width:100%; padding:12px; margin-bottom:12px;"><button id="browser-go" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px; margin-bottom:12px;">🔍 بحث</button><iframe id="browser-frame" style="width:100%; height:280px; border:1px solid #ddd; border-radius:12px;"></iframe>`, 460, 520); setTimeout(()=>{const frame=document.getElementById('browser-frame'); document.getElementById('browser-go').onclick=()=>{let u=document.getElementById('browser-url').value; frame.src=u.startsWith('http')?u:'https://'+u;}; document.getElementById('browser-back').onclick=()=>{if(frame.contentWindow)frame.contentWindow.history.back();}; document.getElementById('browser-forward').onclick=()=>{if(frame.contentWindow)frame.contentWindow.history.forward();}; document.getElementById('browser-refresh').onclick=()=>{if(frame.contentWindow)frame.contentWindow.location.reload();};},50); }
-
-// ========== التطبيقات الجديدة (10 تطبيقات) ==========
-function openGames() {
-    const content = `
-        <div class="games-grid">
-            <div class="game-card" data-game="tictactoe">🎮 تيك تاك تو</div>
-            <div class="game-card" data-game="memory">🧠 لعبة الذاكرة</div>
-            <div class="game-card" data-game="snake">🐍 ثعبان</div>
-            <div class="game-card" data-game="2048">🔢 2048</div>
-        </div>
-        <div id="game-container" style="margin-top:15px;"></div>
-    `;
-    createWindow('🎮 ألعاب', content, 450, 500);
-    setTimeout(() => {
-        document.querySelectorAll('.game-card').forEach(card => {
-            card.onclick = () => {
-                const game = card.getAttribute('data-game');
-                const container = document.getElementById('game-container');
-                if (game === 'tictactoe') {
-                    container.innerHTML = `<div style="text-align:center;"><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; width:200px; margin:0 auto;">${Array(9).fill().map((_,i)=>`<div class="ttt-cell" data-cell="${i}"></div>`).join('')}</div><button id="reset-game" style="margin-top:15px; padding:10px 20px; background:#667eea; color:white; border:none; border-radius:12px;">إعادة</button></div>`;
-                    let board = ['','','','','','','','',''], turn = 'X', gameOver = false;
-                    const checkWinner = () => { const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; for(let w of wins) if(board[w[0]] && board[w[0]]===board[w[1]] && board[w[1]]===board[w[2]]) return board[w[0]]; return board.every(c=>c) ? 'T' : null; };
-                    document.querySelectorAll('.ttt-cell').forEach(cell => {
-                        cell.onclick = () => { if(gameOver || board[parseInt(cell.getAttribute('data-cell'))]) return; const i = parseInt(cell.getAttribute('data-cell')); board[i]=turn; cell.innerHTML=turn; const winner = checkWinner(); if(winner){ gameOver=true; showNotification(winner==='T'?'تعادل!':`${winner} فاز!`, 'success'); } else turn=turn==='X'?'O':'X'; };
-                    });
-                    document.getElementById('reset-game').onclick = () => { board=['','','','','','','','','']; turn='X'; gameOver=false; document.querySelectorAll('.ttt-cell').forEach(c=>c.innerHTML=''); };
-                } else showNotification('قيد التطوير...', 'info');
-            };
-        });
-    }, 50);
+// ========== تثبيت/إزالة أيقونات سطح المكتب ==========
+function toggleAppIcon(appId) {
+    const icon = document.querySelector(`.desktop-icon[data-app="${appId}"]`);
+    if(icon) icon.classList.toggle('removed');
+    if(icon.classList.contains('removed')) {
+        if(!removedIcons.includes(appId)) removedIcons.push(appId);
+    } else {
+        const idx = removedIcons.indexOf(appId);
+        if(idx !== -1) removedIcons.splice(idx,1);
+    }
+    localStorage.setItem('removed_icons', JSON.stringify(removedIcons));
 }
 
-function openUnitConverter() {
-    const content = `
-        <div>
-            <select id="unit-type" style="width:100%; padding:12px; margin-bottom:12px;">
-                <option value="length">📏 طول</option>
-                <option value="weight">⚖️ وزن</option>
-                <option value="volume">🧪 حجم</option>
-                <option value="temperature">🌡️ حرارة</option>
-            </select>
-            <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <input type="number" id="unit-value" placeholder="القيمة" value="1" style="flex:1;">
-                <select id="unit-from" style="flex:1;"></select>
-                <span>→</span>
-                <select id="unit-to" style="flex:1;"></select>
-            </div>
-            <div id="unit-result" style="padding:15px; background:#f0f0f0; border-radius:12px; text-align:center; font-size:18px; font-weight:bold;">1 متر = 1 متر</div>
-        </div>
-    `;
-    createWindow('🧮 محول وحدات', content, 420, 450);
-    setTimeout(() => {
-        const units = {
-            length: { متر:1, كيلومتر:0.001, ميل:0.000621, قدم:3.281, بوصة:39.37 },
-            weight: { كيلوغرام:1, جرام:1000, رطل:2.205, أونصة:35.274 },
-            volume: { لتر:1, مليلتر:1000, جالون:0.264, كوب:4.227 },
-            temperature: { مئوية:1, فهرنهايت:1, كلفن:1 }
-        };
-        const update = () => {
-            const type = document.getElementById('unit-type').value;
-            const from = document.getElementById('unit-from').value;
-            const to = document.getElementById('unit-to').value;
-            let val = parseFloat(document.getElementById('unit-value').value) || 0;
-            let result;
-            if (type === 'temperature') {
-                if (from === 'مئوية' && to === 'فهرنهايت') result = (val * 9/5) + 32;
-                else if (from === 'فهرنهايت' && to === 'مئوية') result = (val - 32) * 5/9;
-                else if (from === 'مئوية' && to === 'كلفن') result = val + 273.15;
-                else if (from === 'كلفن' && to === 'مئوية') result = val - 273.15;
-                else result = val;
-            } else {
-                result = (val / units[type][from]) * units[type][to];
-            }
-            document.getElementById('unit-result').innerHTML = `${val} ${from} = ${result.toFixed(2)} ${to}`;
-        };
-        document.getElementById('unit-type').onchange = () => {
-            const type = document.getElementById('unit-type').value;
-            const unitList = Object.keys(units[type]);
-            document.getElementById('unit-from').innerHTML = unitList.map(u => `<option value="${u}">${u}</option>`).join('');
-            document.getElementById('unit-to').innerHTML = unitList.map(u => `<option value="${u}">${u}</option>`).join('');
-            update();
-        };
-        document.getElementById('unit-value').oninput = update;
-        document.getElementById('unit-from').onchange = update;
-        document.getElementById('unit-to').onchange = update;
-        document.getElementById('unit-type').onchange();
-    }, 50);
-}
+// ========== التطبيقات الأساسية (23 تطبيق) ==========
+function openNotes() { createWindow('📝 مفكرة', `<textarea id="notes-text" style="width:100%; height:250px; border-radius:16px; padding:12px; font-size:14px;">${localStorage.getItem('notes_content')||''}</textarea><button id="save-note" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px;">💾 حفظ</button>`, 450, 480); setTimeout(()=>{document.getElementById('save-note').onclick=()=>{localStorage.setItem('notes_content',document.getElementById('notes-text').value); showNotification('✅ تم حفظ الملاحظات','success');};},100); }
+function openCalculator() { createWindow('🔢 حاسبة', `<input id="calc-disp" type="text" readonly value="0" style="width:100%; padding:20px; font-size:32px; text-align:left; margin-bottom:12px; background:#f5f5f5;"><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">${'789/456*123-0.=+'.split('').map(b=>`<button class="calc-b" data-v="${b}" style="padding:16px; background:#f0f0f0; border-radius:12px; font-size:20px;">${b}</button>`).join('')}<button id="calc-c" style="padding:16px; background:#dc3545; color:white; border-radius:12px;">C</button></div>`, 400, 500); setTimeout(()=>{let v='0',p=0,o=null,w=false;const d=document.getElementById('calc-disp'); const update=()=>d.value=v; const calc=()=>{const cur=parseFloat(v); let r=0; switch(o){case'+':r=p+cur;break;case'-':r=p-cur;break;case'*':r=p*cur;break;case'/':r=cur===0?'خطأ':p/cur;break;} v=r.toString(); if(v==='Infinity'||v==='NaN') v='0'; update();}; document.querySelectorAll('.calc-b').forEach(btn=>{btn.onclick=()=>{const val=btn.getAttribute('data-v'); if(val>='0'&&val<='9'){if(w){v=val;w=false;}else v=v==='0'?val:v+val; update();}else if(val==='.'){if(!v.includes('.')) v+='.'; update();}else if(val==='+'||val==='-'||val==='*'||val==='/'){if(o&&!w)calc(); p=parseFloat(v); o=val; w=true;}else if(val==='='){if(o&&!w)calc(); o=null; w=true;}};}); document.getElementById('calc-c').onclick=()=>{v='0';p=0;o=null;w=false;update();};},100); }
+function openScientific() { createWindow('📊 حاسبة علمية', `<input id="sci-disp" type="text" readonly value="0" style="width:100%; padding:20px; font-size:28px; margin-bottom:12px;"><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0;">${['sin','cos','tan','sqrt','log','ln','pow2'].map(f=>`<button class="sci-f" style="padding:12px; background:#667eea; color:white; border-radius:12px;">${f}</button>`).join('')}<button id="sci-c" style="padding:12px; background:#dc3545; color:white; border-radius:12px;">C</button></div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">${'7894561230.='.split('').map(d=>`<button class="sci-d" data-d="${d}" style="padding:16px; background:#f0f0f0; border-radius:12px;">${d}</button>`).join('')}</div>`, 450, 550); setTimeout(()=>{let sv='0';const d=document.getElementById('sci-disp'); const u=()=>d.value=sv; const sf=(fn)=>{let n=parseFloat(sv); switch(fn){case'sin':sv=Math.sin(n).toString();break;case'cos':sv=Math.cos(n).toString();break;case'tan':sv=Math.tan(n).toString();break;case'sqrt':sv=n>=0?Math.sqrt(n).toString():'خطأ';break;case'log':sv=Math.log10(n).toString();break;case'ln':sv=Math.log(n).toString();break;case'pow2':sv=Math.pow(n,2).toString();break;} if(sv==='NaN'||sv==='Infinity') sv='0'; u();}; document.querySelectorAll('.sci-f').forEach(b=>{b.onclick=()=>sf(b.innerText);}); document.querySelectorAll('.sci-d').forEach(b=>{b.onclick=()=>{const dd=b.getAttribute('data-d'); if(dd==='='){try{sv=eval(sv).toString();}catch(e){sv='0';} u();}else sv=sv==='0'?dd:sv+dd; u();};}); document.getElementById('sci-c').onclick=()=>{sv='0';u();};},100); }
+function openFiles() { let files=JSON.parse(localStorage.getItem('user_files')||'[]'); const rl=()=>{const c=document.getElementById('files-list'); if(c)c.innerHTML=files.length===0?'<p style="text-align:center; color:#999; padding:20px;">لا توجد ملفات</p>':files.map((f,i)=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><span>📄 ${f.name}</span><button class="del-f" data-i="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join(''); document.querySelectorAll('.del-f').forEach(b=>{b.onclick=()=>{files.splice(parseInt(b.getAttribute('data-i')),1); localStorage.setItem('user_files',JSON.stringify(files)); rl(); showNotification('🗑️ تم حذف الملف','info');};});}; createWindow('📁 ملفات', `<button id="add-f" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px;">➕ ملف جديد</button><div id="files-list" style="margin-top:12px;"></div>`, 420, 480); setTimeout(()=>{rl(); document.getElementById('add-f').onclick=()=>{const n=prompt('اسم الملف:'); if(n){files.push({name:n}); localStorage.setItem('user_files',JSON.stringify(files)); rl(); showNotification('✅ تم إنشاء الملف','success');}};},100); }
+function openCalendar() { const today=new Date(); const days=['ح','ن','ث','ر','خ','ج','س']; const dates=Array.from({length:35},(_,i)=>i<31?i+1:''); createWindow('📅 تقويم', `<div style="text-align:center;"><h3>${today.toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</h3><div style="display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:15px;">${days.map(d=>`<div style="font-weight:bold; text-align:center;">${d}</div>`).join('')}${dates.map(d=>`<div style="padding:12px; text-align:center; background:#f0f0f0; border-radius:12px;">${d}</div>`).join('')}</div></div>`, 420, 500); }
+function openTasks() { let tasks=JSON.parse(localStorage.getItem('tasks_v10')||'[]'); const rl=()=>{const c=document.getElementById('tasks-list'); if(c)c.innerHTML=tasks.length===0?'<p style="text-align:center; color:#999; padding:20px;">لا توجد مهام</p>':tasks.map((t,i)=>`<div style="display:flex; align-items:center; gap:10px; padding:12px; border-bottom:1px solid #eee;"><input type="checkbox" class="task-ch" data-i="${i}" ${t.completed?'checked':''} style="width:20px; height:20px;"><span style="flex:1; ${t.completed?'text-decoration:line-through; color:#999;':''}">${t.text}</span><button class="del-t" data-i="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join(''); document.querySelectorAll('.task-ch').forEach(cb=>{cb.onchange=()=>{tasks[parseInt(cb.getAttribute('data-i'))].completed=cb.checked; localStorage.setItem('tasks_v10',JSON.stringify(tasks)); rl();};}); document.querySelectorAll('.del-t').forEach(btn=>{btn.onclick=()=>{tasks.splice(parseInt(btn.getAttribute('data-i')),1); localStorage.setItem('tasks_v10',JSON.stringify(tasks)); rl(); showNotification('🗑️ تم حذف المهمة','info');};});}; createWindow('✅ مهام', `<div style="display:flex; gap:10px; margin-bottom:15px;"><input id="new-t" placeholder="مهمة جديدة..." style="flex:1;"><button id="add-t" style="padding:12px 20px; background:#28a745; color:white; border-radius:12px;">➕</button></div><div id="tasks-list"></div>`, 450, 500); setTimeout(()=>{rl(); document.getElementById('add-t').onclick=()=>{const inp=document.getElementById('new-t'); if(inp.value.trim()){tasks.push({text:inp.value,completed:false}); localStorage.setItem('tasks_v10',JSON.stringify(tasks)); inp.value=''; rl(); showNotification('✅ تم إضافة المهمة','success');}};},100); }
+function openMusic() { createWindow('🎵 مشغل موسيقى', `<div style="text-align:center;"><div style="font-size:64px;">🎵</div><audio id="music-audio" controls style="width:100%; margin:15px 0;"></audio><input type="file" accept="audio/*" id="music-file" style="width:100%; padding:10px;"><div id="now-playing" style="margin-top:10px; color:#999;"></div></div>`, 450, 500); setTimeout(()=>{document.getElementById('music-file').onchange=(e)=>{const f=e.target.files[0]; if(f){document.getElementById('music-audio').src=URL.createObjectURL(f); document.getElementById('now-playing').innerHTML=`🎶 الآن: ${f.name}`; showNotification('✅ تم تحميل الأغنية','success');}};},100); }
+function openGallery() { let imgs=JSON.parse(localStorage.getItem('gallery')||'[]'); const rg=()=>{const c=document.getElementById('gallery-grid'); if(c)c.innerHTML=imgs.length===0?'<p style="text-align:center; color:#999; padding:20px;">لا توجد صور</p>':imgs.map((_,i)=>`<div class="g-img" data-i="${i}" style="background:#f0f0f0; border-radius:16px; padding:20px; text-align:center; cursor:pointer;"><div style="font-size:48px;">🖼️</div><div>صورة ${i+1}</div></div>`).join(''); document.querySelectorAll('.g-img').forEach(el=>{el.onclick=()=>window.open(imgs[parseInt(el.getAttribute('data-i'))]);});}; createWindow('🖼️ معرض صور', `<button id="add-img" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px;">➕ إضافة صورة</button><div id="gallery-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:10px; margin-top:12px;"></div>`, 450, 500); setTimeout(()=>{rg(); document.getElementById('add-img').onclick=()=>{const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange=(e)=>{const f=e.target.files[0]; if(f){const r=new FileReader(); r.onload=(ev)=>{imgs.push(ev.target.result); localStorage.setItem('gallery',JSON.stringify(imgs)); rg(); showNotification('✅ تم إضافة الصورة','success');}; r.readAsDataURL(f);}}; inp.click();};},100); }
+function openDraw() { createWindow('🎨 رسم', `<canvas id="draw-c" width="450" height="350" style="width:100%; background:white; border:1px solid #ddd; border-radius:16px; touch-action:none;"></canvas><div style="display:flex; gap:10px; margin-top:12px;"><button id="draw-cl" style="flex:1; padding:12px; background:#dc3545; color:white; border-radius:12px;">🗑️ مسح</button><button id="draw-sv" style="flex:1; padding:12px; background:#28a745; color:white; border-radius:12px;">💾 حفظ</button></div>`, 480, 520); setTimeout(()=>{const c=document.getElementById('draw-c'),ctx=c.getContext('2d'); c.width=450; c.height=350; ctx.fillStyle='white'; ctx.fillRect(0,0,c.width,c.height); ctx.strokeStyle='#333'; ctx.lineWidth=2; let draw=false; const start=(e)=>{draw=true; const rect=c.getBoundingClientRect(); const x=((e.clientX||e.touches[0].clientX)-rect.left)*(c.width/rect.width); const y=((e.clientY||e.touches[0].clientY)-rect.top)*(c.height/rect.height); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y); ctx.stroke();}; const move=(e)=>{if(!draw)return; e.preventDefault(); const rect=c.getBoundingClientRect(); const x=((e.clientX||e.touches[0].clientX)-rect.left)*(c.width/rect.width); const y=((e.clientY||e.touches[0].clientY)-rect.top)*(c.height/rect.height); ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y);}; c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); c.addEventListener('mouseup',()=>{draw=false;ctx.beginPath();}); c.addEventListener('touchstart',start); c.addEventListener('touchmove',move); c.addEventListener('touchend',()=>{draw=false;ctx.beginPath();}); document.getElementById('draw-cl').onclick=()=>{ctx.fillStyle='white'; ctx.fillRect(0,0,c.width,c.height);}; document.getElementById('draw-sv').onclick=()=>{const a=document.createElement('a'); a.download=`drawing_${Date.now()}.png`; a.href=c.toDataURL(); a.click(); showNotification('✅ تم حفظ الرسم','success');};},100); }
+function openAlarm() { let to=null; createWindow('⏰ منبه', `<div style="text-align:center;"><div style="font-size:64px;">⏰</div><input type="time" id="alarm-t" style="width:100%; padding:15px; margin:15px 0;"><button id="set-alarm" style="width:100%; padding:15px; background:#28a745; color:white; border:none; border-radius:12px;">✅ ضبط المنبه</button></div>`, 400, 420); setTimeout(()=>{document.getElementById('set-alarm').onclick=()=>{const t=document.getElementById('alarm-t').value; if(t){const n=new Date(),[h,m]=t.split(':'); const a=new Date(); a.setHours(parseInt(h),parseInt(m),0); if(a<=n)a.setDate(a.getDate()+1); const d=a-n; if(to)clearTimeout(to); to=setTimeout(()=>{alert('⏰ وقت المنبه!'); showNotification('🔔 وقت المنبه!','warning');},d); showNotification(`✅ تم ضبط المنبه على ${t}`,'success');}};},100); }
+function openCurrency() { const r={USD:1,EUR:0.92,GBP:0.78,SAR:3.75,EGP:48.5,AED:3.67,JOD:0.71,KWD:0.31}; createWindow('🧮 تحويل عملات', `<div><input type="number" id="curr-amt" value="1" style="width:100%;"><div style="display:flex; gap:10px; margin:10px 0;"><select id="curr-f" style="flex:1;">${Object.keys(r).map(c=>`<option>${c}</option>`).join('')}</select><span>→</span><select id="curr-t" style="flex:1;">${Object.keys(r).map(c=>`<option>${c}</option>`).join('')}</select></div><div id="curr-res" style="padding:15px; background:#f0f0f0; border-radius:12px; text-align:center; font-weight:bold;"></div></div>`, 420, 420); setTimeout(()=>{const cnv=()=>{const a=parseFloat(document.getElementById('curr-amt').value)||0, f=document.getElementById('curr-f').value, t=document.getElementById('curr-t').value, res=(a/r[f])*r[t]; document.getElementById('curr-res').innerHTML=`${res.toFixed(2)} ${t}`;}; document.getElementById('curr-amt').oninput=cnv; document.getElementById('curr-f').onchange=cnv; document.getElementById('curr-t').onchange=cnv; cnv();},100); }
+function openBrowser() { createWindow('🌐 متصفح', `<div style="display:flex; gap:8px; margin-bottom:12px;"><button id="browser-back" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">◀</button><button id="browser-forward" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">▶</button><button id="browser-refresh" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">🔄</button></div><input type="text" id="browser-url" placeholder="https://google.com" style="width:100%; padding:12px; margin-bottom:12px;"><button id="browser-go" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">🔍 بحث</button><iframe id="browser-frame" style="width:100%; height:300px; border:1px solid #ddd; border-radius:12px;"></iframe>`, 500, 550); setTimeout(()=>{const frame=document.getElementById('browser-frame'); document.getElementById('browser-go').onclick=()=>{let u=document.getElementById('browser-url').value; if(u) frame.src=u.startsWith('http')?u:'https://'+u;}; document.getElementById('browser-back').onclick=()=>{if(frame.contentWindow)frame.contentWindow.history.back();}; document.getElementById('browser-forward').onclick=()=>{if(frame.contentWindow)frame.contentWindow.history.forward();}; document.getElementById('browser-refresh').onclick=()=>{if(frame.contentWindow)frame.contentWindow.location.reload();};},100); }
+function openGames() { createWindow('🎮 ألعاب', `<div class="games-grid"><div class="game-card" data-game="tictactoe">🎮 تيك تاك تو</div><div class="game-card" data-game="memory">🧠 لعبة الذاكرة</div></div><div id="game-container" style="margin-top:15px;"></div>`, 450, 500); setTimeout(()=>{document.querySelectorAll('.game-card').forEach(card=>{card.onclick=()=>{const game=card.getAttribute('data-game'); const container=document.getElementById('game-container'); if(game==='tictactoe'){container.innerHTML=`<div style="text-align:center;"><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; width:200px; margin:0 auto;">${Array(9).fill().map((_,i)=>`<div class="ttt-cell" data-cell="${i}"></div>`).join('')}</div><button id="reset-game" style="margin-top:15px; padding:10px 20px; background:#667eea; color:white; border-radius:12px;">إعادة</button></div>`; let board=['','','','','','','','',''], turn='X', over=false; const check=()=>{const w=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; for(let x of w)if(board[x[0]]&&board[x[0]]===board[x[1]]&&board[x[1]]===board[x[2]])return board[x[0]]; return board.every(c=>c)?'T':null;}; document.querySelectorAll('.ttt-cell').forEach(cell=>{cell.onclick=()=>{if(over||board[parseInt(cell.getAttribute('data-cell'))])return; const i=parseInt(cell.getAttribute('data-cell')); board[i]=turn; cell.innerHTML=turn; const w=check(); if(w){over=true; showNotification(w==='T'?'تعادل!':`${w} فاز!`,'success');} else turn=turn==='X'?'O':'X';};}); document.getElementById('reset-game').onclick=()=>{board=['','','','','','','','','']; turn='X'; over=false; document.querySelectorAll('.ttt-cell').forEach(c=>c.innerHTML='');};}
+else if(game==='memory'){const icons=['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼']; const cards=[...icons,...icons]; for(let i=cards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cards[i],cards[j]]=[cards[j],cards[i]];} let flipped=[], matched=[]; container.innerHTML=`<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">${cards.map((c,i)=>`<div class="memory-card" data-i="${i}" data-icon="${c}">?</div>`).join('')}</div><button id="reset-memory" style="margin-top:15px; padding:10px 20px; background:#667eea; color:white; border-radius:12px;">إعادة</button>`; const updateCards=()=>{document.querySelectorAll('.memory-card').forEach(card=>{const idx=parseInt(card.getAttribute('data-i')); if(matched.includes(idx))card.classList.add('matched'); else if(flipped.includes(idx))card.innerHTML=card.getAttribute('data-icon'); else card.innerHTML='?';});}; document.querySelectorAll('.memory-card').forEach(card=>{card.onclick=()=>{if(flipped.length>=2||matched.includes(parseInt(card.getAttribute('data-i'))))return; card.innerHTML=card.getAttribute('data-icon'); flipped.push(parseInt(card.getAttribute('data-i'))); if(flipped.length===2){const i1=flipped[0],i2=flipped[1]; if(cards[i1]===cards[i2]){matched.push(i1,i2); flipped=[]; updateCards(); if(matched.length===cards.length)showNotification('🎉 تهانينا! لقد فزت!','success');}else{setTimeout(()=>{flipped=[]; updateCards();},500);}}}}); document.getElementById('reset-memory').onclick=()=>location.reload();}};});},100); }
+function openUnitConverter() { const units={length:{متر:1,كيلومتر:0.001,ميل:0.000621,قدم:3.281,بوصة:39.37},weight:{كيلوغرام:1,جرام:1000,رطل:2.205,أونصة:35.274},volume:{لتر:1,مليلتر:1000,جالون:0.264,كوب:4.227},temperature:{مئوية:1,فهرنهايت:1,كلفن:1}}; createWindow('🧮 محول وحدات', `<div><select id="unit-type" style="width:100%; padding:12px; margin-bottom:12px;"><option value="length">📏 طول</option><option value="weight">⚖️ وزن</option><option value="volume">🧪 حجم</option><option value="temperature">🌡️ حرارة</option></select><div style="display:flex; gap:10px; margin-bottom:12px;"><input type="number" id="unit-value" value="1" style="flex:1;"><select id="unit-from" style="flex:1;"></select><span>→</span><select id="unit-to" style="flex:1;"></select></div><div id="unit-result" style="padding:15px; background:#f0f0f0; border-radius:12px; text-align:center; font-weight:bold;"></div></div>`, 450, 480); setTimeout(()=>{const update=()=>{const type=document.getElementById('unit-type').value; const from=document.getElementById('unit-from').value; const to=document.getElementById('unit-to').value; let val=parseFloat(document.getElementById('unit-value').value)||0; let result; if(type==='temperature'){if(from==='مئوية'&&to==='فهرنهايت')result=(val*9/5)+32; else if(from==='فهرنهايت'&&to==='مئوية')result=(val-32)*5/9; else if(from==='مئوية'&&to==='كلفن')result=val+273.15; else if(from==='كلفن'&&to==='مئوية')result=val-273.15; else result=val;}else{result=(val/units[type][from])*units[type][to];} document.getElementById('unit-result').innerHTML=`${val} ${from} = ${result.toFixed(2)} ${to}`;}; document.getElementById('unit-type').onchange=()=>{const type=document.getElementById('unit-type').value; const list=Object.keys(units[type]); document.getElementById('unit-from').innerHTML=list.map(u=>`<option>${u}</option>`).join(''); document.getElementById('unit-to').innerHTML=list.map(u=>`<option>${u}</option>`).join(''); update();}; document.getElementById('unit-value').oninput=update; document.getElementById('unit-from').onchange=update; document.getElementById('unit-to').onchange=update; document.getElementById('unit-type').onchange();},100); }
+function openNews() { createWindow('📰 أخبار', `<div><div style="padding:15px; background:#f0f0f0; border-radius:16px; margin-bottom:10px;"><div style="font-weight:bold;">🎉 V10.5 Cloud OS</div><div>تم إطلاق النسخة النهائية بـ 23 تطبيق</div><small>الآن</small></div><div style="padding:15px; background:#f0f0f0; border-radius:16px; margin-bottom:10px;"><div style="font-weight:bold;">🎮 ألعاب جديدة</div><div>أضفنا تيك تاك تو ولعبة الذاكرة</div><small>قبل يوم</small></div><div style="padding:15px; background:#f0f0f0; border-radius:16px;"><div style="font-weight:bold;">🔒 قفل الشاشة</div><div>ميزة قفل الشاشة متاحة الآن</div><small>قبل يومين</small></div></div>`, 450, 500); }
+function openChat() { const render=()=>{const c=document.getElementById('chat-messages'); if(c)c.innerHTML=chatHistory.map(m=>`<div class="chat-message"><strong>${m.sender}:</strong> ${m.text}<br><small>${m.time}</small></div>`).join('');}; createWindow('💬 دردشة محلية', `<div id="chat-messages" class="chat-messages"></div><div style="display:flex; gap:10px;"><input type="text" id="chat-input" placeholder="اكتب رسالة..."><button id="chat-send" style="padding:12px 20px; background:#667eea; color:white; border-radius:12px;">إرسال</button></div>`, 480, 520); setTimeout(()=>{render(); document.getElementById('chat-send').onclick=()=>{const inp=document.getElementById('chat-input'); if(inp.value.trim()){chatHistory.push({sender:'أنت',text:inp.value,time:new Date().toLocaleTimeString()}); localStorage.setItem('chat_history',JSON.stringify(chatHistory)); render(); inp.value='';}};},100); }
+function openDataAnalysis() { createWindow('📊 تحليل بيانات', `<div style="text-align:center;"><div style="font-size:48px;">📊</div><input type="text" id="data-input" placeholder="أدخل أرقام مفصولة بفواصل... مثال: 10,20,30"><button id="analyze-btn" style="margin-top:10px; padding:12px; background:#28a745; color:white; border-radius:12px;">تحليل</button><div id="analysis-result" style="margin-top:15px; padding:15px; background:#f0f0f0; border-radius:12px;"></div></div>`, 450, 500); setTimeout(()=>{document.getElementById('analyze-btn').onclick=()=>{const inp=document.getElementById('data-input').value; const nums=inp.split(',').map(n=>parseFloat(n)).filter(n=>!isNaN(n)); if(nums.length===0){showNotification('❌ أدخل أرقام صحيحة','error'); return;} const sum=nums.reduce((a,b)=>a+b,0); const avg=sum/nums.length; const max=Math.max(...nums); const min=Math.min(...nums); document.getElementById('analysis-result').innerHTML=`📊 المجموع: ${sum}<br>📈 المتوسط: ${avg.toFixed(2)}<br>📈 القيمة الكبرى: ${max}<br>📉 القيمة الصغرى: ${min}`; showNotification('✅ تم التحليل بنجاح','success');};},100); }
+function openImageEditor() { createWindow('🎨 تعديل صور', `<div style="text-align:center;"><div style="font-size:48px;">🖼️</div><input type="file" accept="image/*" id="edit-image"><canvas id="edit-canvas" style="width:100%; margin-top:12px; border:1px solid #ddd; border-radius:12px;"></canvas><div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;"><button id="brightness-up" style="flex:1; padding:10px; background:#667eea; color:white; border-radius:12px;">➕ سطوع</button><button id="brightness-down" style="flex:1; padding:10px; background:#667eea; color:white; border-radius:12px;">➖ سطوع</button><button id="grayscale" style="flex:1; padding:10px; background:#6c757d; color:white; border-radius:12px;">⚫ تدرج رمادي</button><button id="reset-img" style="flex:1; padding:10px; background:#28a745; color:white; border-radius:12px;">🔄 إعادة</button></div></div>`, 500, 550); setTimeout(()=>{let img=new Image(); const canvas=document.getElementById('edit-canvas'); const ctx=canvas.getContext('2d'); document.getElementById('edit-image').onchange=(e)=>{const f=e.target.files[0]; if(f){const r=new FileReader(); r.onload=(ev)=>{img.onload=()=>{canvas.width=img.width; canvas.height=img.height; ctx.drawImage(img,0,0);}; img.src=ev.target.result;}; r.readAsDataURL(f);}}; document.getElementById('brightness-up').onclick=()=>{if(img.src){const d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]=Math.min(255,d.data[i]+30); d.data[i+1]=Math.min(255,d.data[i+1]+30); d.data[i+2]=Math.min(255,d.data[i+2]+30);} ctx.putImageData(d,0,0); showNotification('✅ تم زيادة السطوع','success');}}; document.getElementById('brightness-down').onclick=()=>{if(img.src){const d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]=Math.max(0,d.data[i]-30); d.data[i+1]=Math.max(0,d.data[i+1]-30); d.data[i+2]=Math.max(0,d.data[i+2]-30);} ctx.putImageData(d,0,0); showNotification('✅ تم تقليل السطوع','success');}}; document.getElementById('grayscale').onclick=()=>{if(img.src){const d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){const gray=(d.data[i]+d.data[i+1]+d.data[i+2])/3; d.data[i]=gray; d.data[i+1]=gray; d.data[i+2]=gray;} ctx.putImageData(d,0,0); showNotification('✅ تم التحويل إلى تدرج رمادي','success');}}; document.getElementById('reset-img').onclick=()=>{if(img.src)ctx.drawImage(img,0,0);};},100); }
+function openPDFReader() { createWindow('📝 PDF قارئ', `<div style="text-align:center;"><div style="font-size:48px;">📄</div><input type="file" accept=".pdf" id="pdf-file"><div id="pdf-viewer" style="margin-top:12px; padding:20px; background:#f0f0f0; border-radius:12px;"><p>⚠️ اختر ملف PDF لعرضه</p></div></div>`, 450, 480); setTimeout(()=>{document.getElementById('pdf-file').onchange=(e)=>{const f=e.target.files[0]; if(f){showNotification(`✅ تم رفع ${f.name}`,'success'); document.getElementById('pdf-viewer').innerHTML=`<div style="text-align:center;"><a href="${URL.createObjectURL(f)}" download style="display:inline-block; padding:12px 20px; background:#28a745; color:white; text-decoration:none; border-radius:12px;">📥 تحميل الملف</a><p style="margin-top:10px; font-size:12px; color:#666;">ملف: ${f.name}</p></div>`;}};},100); }
+function openPasswordManager() { let passwords=JSON.parse(localStorage.getItem('passwords')||'[]'); const render=()=>{const c=document.getElementById('pass-list'); if(c)c.innerHTML=passwords.length===0?'<p style="text-align:center; color:#999; padding:20px;">لا توجد كلمات مرور</p>':passwords.map((p,i)=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><div><strong>${p.site}</strong><div style="font-size:12px; color:#999;">${p.username}</div></div><button class="del-pass" data-i="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join(''); document.querySelectorAll('.del-pass').forEach(btn=>{btn.onclick=()=>{passwords.splice(parseInt(btn.getAttribute('data-i')),1); localStorage.setItem('passwords',JSON.stringify(passwords)); render(); showNotification('🗑️ تم حذف كلمة المرور','info');};});}; createWindow('🔐 مدير كلمات مرور', `<div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;"><input id="pass-site" placeholder="الموقع" style="flex:1;"><input id="pass-user" placeholder="اسم المستخدم" style="flex:1;"><input id="pass-pass" placeholder="كلمة المرور" style="flex:1;"><button id="add-pass" style="padding:12px; background:#28a745; color:white; border-radius:12px;">➕</button></div><div id="pass-list"></div>`, 500, 520); setTimeout(()=>{render(); document.getElementById('add-pass').onclick=()=>{const site=document.getElementById('pass-site').value; const user=document.getElementById('pass-user').value; const pass=document.getElementById('pass-pass').value; if(site&&user&&pass){passwords.push({site,username:user,password:pass}); localStorage.setItem('passwords',JSON.stringify(passwords)); render(); document.getElementById('pass-site').value=''; document.getElementById('pass-user').value=''; document.getElementById('pass-pass').value=''; showNotification('✅ تم إضافة كلمة المرور','success');}else showNotification('❌ الرجاء ملء جميع الحقول','error');};},100); }
+function openCrypto() { const cryptos={بيتكوين:65000,إيثيريوم:3500,ريبل:0.65,كاردانو:0.45,سولانا:150,دوجكوين:0.12}; createWindow('📈 عملات رقمية', `<div style="display:grid; gap:12px;">${Object.entries(cryptos).map(([n,p])=>`<div style="display:flex; justify-content:space-between; padding:15px; background:#f0f0f0; border-radius:12px;"><span>💰 ${n}</span><span>$${p.toLocaleString()}</span></div>`).join('')}<div style="margin-top:12px; text-align:center; font-size:12px; color:#999;">آخر تحديث: ${new Date().toLocaleTimeString()}</div></div>`, 450, 500); }
+function openMaps() { createWindow('🗺️ خرائط', `<div style="text-align:center;"><div style="font-size:48px;">🗺️</div><input type="text" id="location" placeholder="أدخل موقعاً..."><button id="show-map" style="margin-top:10px; padding:12px; background:#667eea; color:white; border-radius:12px;">🔍 بحث</button><iframe id="map-frame" style="width:100%; height:300px; margin-top:12px; border:1px solid #ddd; border-radius:12px;" src="https://www.openstreetmap.org/export/embed.html?bbox=44.2,15.3,44.3,15.4&layer=mapnik"></iframe></div>`, 480, 520); setTimeout(()=>{document.getElementById('show-map').onclick=()=>{const loc=document.getElementById('location').value; if(loc){showNotification(`جاري البحث عن ${loc}...`,'info'); document.getElementById('map-frame').src=`https://www.openstreetmap.org/export/embed.html?q=${encodeURIComponent(loc)}&layer=mapnik`;}};},100); }
+function openSettings() { let total=0; for(let i=0;i<localStorage.length;i++) total+=(localStorage.key(i).length+(localStorage.getItem(localStorage.key(i))||'').length)*2; createWindow('⚙️ إعدادات متطورة', `<div style="max-height:450px; overflow-y:auto;"><div style="margin:15px 0;"><strong>⚙️ إعدادات V10.5</strong></div><div style="margin:15px 0;">💾 التخزين: ${(total/1048576).toFixed(2)} MB</div><div style="margin:15px 0;">🪟 النوافذ المفتوحة: ${openWindows.length}</div><div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode')?'نهار ☀️':'ليل 🌙'}</div><div style="margin:15px 0;">🔋 البطارية: ${document.getElementById('batteryStatus')?.innerText||'--'}</div><div style="margin:15px 0;">📡 الشبكة: ${document.getElementById('networkStatus')?.innerText||'Online'}</div><button id="settings-clear" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:10px;">🗑️ مسح جميع البيانات</button><button id="settings-close" style="width:100%; padding:14px; background:#667eea; color:white; border:none; border-radius:16px; margin-top:10px;">❌ إغلاق جميع النوافذ</button><button id="settings-export" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير البيانات</button><button id="settings-import" style="width:100%; padding:14px; background:#17a2b8; color:white; border:none; border-radius:16px; margin-top:10px;">📥 استيراد بيانات</button><button id="power-saving-btn" style="width:100%; padding:14px; background:#ff9800; color:white; border:none; border-radius:16px; margin-top:10px;">⚡ توفير الطاقة</button><div style="margin:15px 0;"><strong>🎨 الخلفيات:</strong></div><div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;"><button id="wallpaper-ocean" style="padding:10px; background:#006994; color:white;">🌊 محيط</button><button id="wallpaper-forest" style="padding:10px; background:#228B22; color:white;">🌲 غابة</button><button id="wallpaper-sunset" style="padding:10px; background:#FF7E5F;">🌅 غروب</button><button id="wallpaper-night" style="padding:10px; background:#24243e; color:white;">🌙 ليل</button><button id="wallpaper-rose" style="padding:10px; background:#ff9a9e;">🌸 وردي</button><button id="wallpaper-mountain" style="padding:10px; background:#2c3e50; color:white;">⛰️ جبال</button><button id="wallpaper-default" style="padding:10px; background:#667eea;">🔄 افتراضي</button></div></div>`, 480, 600); setTimeout(()=>{document.getElementById('settings-clear').onclick=()=>{if(confirm('مسح جميع البيانات؟')){localStorage.clear(); showNotification('✅ تم مسح البيانات','success'); setTimeout(()=>location.reload(),1000);}}; document.getElementById('settings-close').onclick=()=>{document.querySelectorAll('.window').forEach(w=>w.remove()); openWindows=[]; minimizedApps=[]; updateTaskbarApps(); showNotification('✅ تم إغلاق جميع النوافذ','success');}; document.getElementById('settings-export').onclick=()=>exportData(); document.getElementById('settings-import').onclick=()=>{const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=(e)=>{if(e.target.files[0])importData(e.target.files[0]);}; inp.click();}; document.getElementById('power-saving-btn').onclick=()=>togglePowerSaving(); document.getElementById('wallpaper-ocean').onclick=()=>changeWallpaper('ocean'); document.getElementById('wallpaper-forest').onclick=()=>changeWallpaper('forest'); document.getElementById('wallpaper-sunset').onclick=()=>changeWallpaper('sunset'); document.getElementById('wallpaper-night').onclick=()=>changeWallpaper('night'); document.getElementById('wallpaper-rose').onclick=()=>changeWallpaper('rose'); document.getElementById('wallpaper-mountain').onclick=()=>changeWallpaper('mountain'); document.getElementById('wallpaper-default').onclick=()=>changeWallpaper('default');},100); }
 
-function openNews() {
-    const news = [
-        { title: "V10 Cloud OS تم إطلاقه!", desc: "نسخة جديدة كاملة بـ 23 تطبيق", time: "الآن" },
-        { title: "تحديث جديد قادم", desc: "ميزات الذكاء الاصطناعي قريباً", time: "قبل ساعة" },
-        { title: "تطبيقات جديدة", desc: "أضفنا ألعاب ومحول وحدات", time: "قبل يوم" }
-    ];
-    createWindow('📰 أخبار', `<div>${news.map(n => `<div style="padding:12px; border-bottom:1px solid #eee;"><div style="font-weight:bold;">📰 ${n.title}</div><div style="font-size:12px; color:#666;">${n.desc}</div><div style="font-size:10px; color:#999;">${n.time}</div></div>`).join('')}</div>`, 400, 450);
-}
-
-function openChat() {
-    const renderChat = () => {
-        const container = document.getElementById('chat-messages');
-        if(container) container.innerHTML = chatHistory.map(m => `<div class="chat-message"><strong>${m.sender}:</strong> ${m.text}<br><small>${m.time}</small></div>`).join('');
-    };
-    const content = `<div id="chat-messages" class="chat-messages"></div><div style="display:flex; gap:10px;"><input type="text" id="chat-input" placeholder="اكتب رسالة..."><button id="chat-send" style="padding:12px 20px; background:#667eea; color:white; border:none; border-radius:12px;">إرسال</button></div>`;
-    createWindow('💬 دردشة محلية', content, 450, 500);
-    setTimeout(() => {
-        renderChat();
-        document.getElementById('chat-send').onclick = () => {
-            const input = document.getElementById('chat-input');
-            if(input.value.trim()) {
-                chatHistory.push({ sender: 'أنت', text: input.value, time: new Date().toLocaleTimeString() });
-                localStorage.setItem('chat_history', JSON.stringify(chatHistory));
-                renderChat();
-                input.value = '';
-            }
-        };
-    }, 50);
-}
-
-function openDataAnalysis() {
-    createWindow('📊 تحليل بيانات', `<div style="text-align:center;"><div style="font-size:48px;">📊</div><input type="text" id="data-input" placeholder="أدخل أرقام مفصولة بفواصل..."><button id="analyze-btn" style="margin-top:10px;">تحليل</button><div id="analysis-result" style="margin-top:15px; padding:15px; background:#f0f0f0; border-radius:12px;"></div></div>`, 450, 480);
-    setTimeout(() => {
-        document.getElementById('analyze-btn').onclick = () => {
-            const input = document.getElementById('data-input').value;
-            const nums = input.split(',').map(n => parseFloat(n)).filter(n => !isNaN(n));
-            if(nums.length === 0) { showNotification('❌ أدخل أرقام صحيحة', 'error'); return; }
-            const sum = nums.reduce((a,b)=>a+b,0);
-            const avg = sum / nums.length;
-            const max = Math.max(...nums);
-            const min = Math.min(...nums);
-            document.getElementById('analysis-result').innerHTML = `📊 المجموع: ${sum}<br>📈 المتوسط: ${avg.toFixed(2)}<br>📈 القيمة الكبرى: ${max}<br>📉 القيمة الصغرى: ${min}`;
-            showNotification('✅ تم التحليل بنجاح', 'success');
-        };
-    }, 50);
-}
-
-function openImageEditor() {
-    createWindow('🎨 تعديل صور', `<div style="text-align:center;"><div style="font-size:48px;">🖼️</div><input type="file" accept="image/*" id="edit-image"><canvas id="edit-canvas" style="width:100%; margin-top:12px; border:1px solid #ddd; border-radius:12px;"></canvas><div style="display:flex; gap:10px; margin-top:12px;"><button id="brightness-up">➕ سطوع</button><button id="brightness-down">➖ سطوع</button><button id="grayscale">⚫ تدرج رمادي</button><button id="reset-img">🔄 إعادة</button></div></div>`, 480, 550);
-    setTimeout(() => {
-        let img = new Image();
-        const canvas = document.getElementById('edit-canvas');
-        const ctx = canvas.getContext('2d');
-        document.getElementById('edit-image').onchange = (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    img.onload = () => {
-                        canvas.width = img.width; canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
-                    };
-                    img.src = ev.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-        document.getElementById('brightness-up').onclick = () => { if(img.src) { const imageData = ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<imageData.data.length;i+=4){imageData.data[i]=Math.min(255,imageData.data[i]+30); imageData.data[i+1]=Math.min(255,imageData.data[i+1]+30); imageData.data[i+2]=Math.min(255,imageData.data[i+2]+30);} ctx.putImageData(imageData,0,0); showNotification('✅ تم زيادة السطوع','success'); } };
-        document.getElementById('brightness-down').onclick = () => { if(img.src) { const imageData = ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<imageData.data.length;i+=4){imageData.data[i]=Math.max(0,imageData.data[i]-30); imageData.data[i+1]=Math.max(0,imageData.data[i+1]-30); imageData.data[i+2]=Math.max(0,imageData.data[i+2]-30);} ctx.putImageData(imageData,0,0); showNotification('✅ تم تقليل السطوع','success'); } };
-        document.getElementById('grayscale').onclick = () => { if(img.src) { const imageData = ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<imageData.data.length;i+=4){const gray = (imageData.data[i]+imageData.data[i+1]+imageData.data[i+2])/3; imageData.data[i]=gray; imageData.data[i+1]=gray; imageData.data[i+2]=gray;} ctx.putImageData(imageData,0,0); showNotification('✅ تم التحويل إلى تدرج رمادي','success'); } };
-        document.getElementById('reset-img').onclick = () => { if(img.src) ctx.drawImage(img,0,0); };
-    }, 50);
-}
-
-function openPDFReader() {
-    createWindow('📝 PDF قارئ', `<div style="text-align:center;"><div style="font-size:48px;">📄</div><input type="file" accept=".pdf" id="pdf-file"><div id="pdf-viewer" style="margin-top:12px; padding:20px; background:#f0f0f0; border-radius:12px; text-align:center;"><p>⚠️ معاينة PDF تحتاج إلى مكتبة خارجية<br>يمكنك تنزيل الملف وفتحه</p></div></div>`, 450, 480);
-    setTimeout(() => {
-        document.getElementById('pdf-file').onchange = (e) => {
-            const file = e.target.files[0];
-            if(file) { showNotification(`✅ تم رفع ${file.name}`, 'success'); document.getElementById('pdf-viewer').innerHTML = `<div style="text-align:center;"><a href="${URL.createObjectURL(file)}" download style="padding:10px 20px; background:#28a745; color:white; text-decoration:none; border-radius:12px;">📥 تحميل الملف</a></div>`; }
-        };
-    }, 50);
-}
-
-function openPasswordManager() {
-    let passwords = JSON.parse(localStorage.getItem('passwords') || '[]');
-    const render = () => {
-        const container = document.getElementById('pass-list');
-        if(container) container.innerHTML = passwords.map((p,i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><div><div><strong>${p.site}</strong></div><div style="font-size:12px; color:#999;">${p.username}</div></div><button class="del-pass" data-i="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join('');
-        document.querySelectorAll('.del-pass').forEach(btn => { btn.onclick = () => { passwords.splice(parseInt(btn.getAttribute('data-i')),1); localStorage.setItem('passwords',JSON.stringify(passwords)); render(); showNotification('🗑️ تم الحذف','info'); }; });
-    };
-    createWindow('🔐 مدير كلمات مرور', `<div style="display:flex; gap:10px; margin-bottom:15px;"><input id="pass-site" placeholder="الموقع" style="flex:1;"><input id="pass-user" placeholder="اسم المستخدم" style="flex:1;"><input id="pass-pass" placeholder="كلمة المرور" style="flex:1;"><button id="add-pass" style="padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">➕</button></div><div id="pass-list"></div>`, 480, 500);
-    setTimeout(() => {
-        render();
-        document.getElementById('add-pass').onclick = () => {
-            const site = document.getElementById('pass-site').value;
-            const user = document.getElementById('pass-user').value;
-            const pass = document.getElementById('pass-pass').value;
-            if(site && user && pass) {
-                passwords.push({ site, username: user, password: pass });
-                localStorage.setItem('passwords', JSON.stringify(passwords));
-                render();
-                document.getElementById('pass-site').value = '';
-                document.getElementById('pass-user').value = '';
-                document.getElementById('pass-pass').value = '';
-                showNotification('✅ تم إضافة كلمة المرور', 'success');
-            } else showNotification('❌ الرجاء ملء جميع الحقول', 'error');
-        };
-    }, 50);
-}
-
-function openCrypto() {
-    const cryptos = { بیت‌کوین: 65000, إيثيريوم: 3500, ريبل: 0.65, كاردانو: 0.45, سولانا: 150 };
-    createWindow('📈 عملات رقمية', `<div style="display:grid; gap:12px;">${Object.entries(cryptos).map(([name,price]) => `<div style="display:flex; justify-content:space-between; padding:12px; background:#f0f0f0; border-radius:12px;"><span>💰 ${name}</span><span>$${price.toLocaleString()}</span></div>`).join('')}<div style="margin-top:12px; text-align:center; font-size:12px; color:#999;">آخر تحديث: ${new Date().toLocaleTimeString()}</div></div>`, 400, 450);
-}
-
-function openMaps() {
-    createWindow('🗺️ خرائط', `<div style="text-align:center;"><div style="font-size:48px;">🗺️</div><input type="text" id="location" placeholder="أدخل موقعاً..."><button id="show-map" style="margin-top:10px;">🔍 بحث</button><iframe id="map-frame" style="width:100%; height:250px; margin-top:12px; border:1px solid #ddd; border-radius:12px;" src="https://www.openstreetmap.org/export/embed.html?bbox=44.2,15.3,44.3,15.4&layer=mapnik"></iframe></div>`, 450, 480);
-    setTimeout(() => {
-        document.getElementById('show-map').onclick = () => {
-            const loc = document.getElementById('location').value;
-            if(loc) showNotification(`جاري البحث عن ${loc}...`, 'info');
-        };
-    }, 50);
-}
-
-// ========== الإعدادات المتطورة ==========
-function openSettings() {
-    let total = 0;
-    for(let i=0;i<localStorage.length;i++) total+=(localStorage.key(i).length+(localStorage.getItem(localStorage.key(i))||'').length)*2;
-    const content = `
-        <div style="max-height:400px; overflow-y:auto;">
-            <div style="margin:15px 0;"><strong>⚙️ إعدادات V10.0</strong></div>
-            <div style="margin:15px 0;">💾 التخزين: ${(total/1048576).toFixed(2)} MB</div>
-            <div style="margin:15px 0;">🪟 النوافذ المفتوحة: ${openWindows.length}</div>
-            <div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode')?'نهار ☀️':'ليل 🌙'}</div>
-            <div style="margin:15px 0;">🔋 البطارية: ${document.getElementById('batteryStatus').innerText}</div>
-            <div style="margin:15px 0;">📡 الشبكة: ${document.getElementById('networkStatus').innerText}</div>
-            <button id="settings-clear" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:10px;">🗑️ مسح جميع البيانات</button>
-            <button id="settings-close" style="width:100%; padding:14px; background:#667eea; color:white; border:none; border-radius:16px; margin-top:10px;">❌ إغلاق جميع النوافذ</button>
-            <button id="settings-export" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-top:10px;">📤 تصدير البيانات</button>
-            <button id="settings-import" style="width:100%; padding:14px; background:#17a2b8; color:white; border:none; border-radius:16px; margin-top:10px;">📥 استيراد بيانات</button>
-            <button id="power-saving-btn" style="width:100%; padding:14px; background:#ff9800; color:white; border:none; border-radius:16px; margin-top:10px;">⚡ توفير الطاقة</button>
-            <div style="margin:15px 0;"><strong>🎨 الخلفيات:</strong></div>
-            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
-                <button id="wallpaper-ocean" style="padding:10px; background:#006994; color:white;">🌊 محيط</button>
-                <button id="wallpaper-forest" style="padding:10px; background:#228B22; color:white;">🌲 غابة</button>
-                <button id="wallpaper-sunset" style="padding:10px; background:#FF7E5F;">🌅 غروب</button>
-                <button id="wallpaper-night" style="padding:10px; background:#24243e; color:white;">🌙 ليل</button>
-                <button id="wallpaper-rose" style="padding:10px; background:#ff9a9e;">🌸 وردي</button>
-                <button id="wallpaper-mountain" style="padding:10px; background:#2c3e50; color:white;">⛰️ جبال</button>
-                <button id="wallpaper-default" style="padding:10px; background:#667eea;">🔄 افتراضي</button>
-            </div>
-        </div>
-    `;
-    createWindow('⚙️ إعدادات متطورة', content, 450, 600);
-    setTimeout(() => {
-        document.getElementById('settings-clear').onclick = () => { if(confirm('مسح جميع البيانات؟')){ localStorage.clear(); showNotification('✅ تم المسح','success'); setTimeout(()=>location.reload(),1000); } };
-        document.getElementById('settings-close').onclick = () => { document.querySelectorAll('.window').forEach(w=>w.remove()); openWindows=[]; updateTaskbarApps(); showNotification('✅ تم إغلاق الكل','success'); };
-        document.getElementById('settings-export').onclick = () => exportData();
-        document.getElementById('settings-import').onclick = () => { const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=(e)=>{if(e.target.files[0]) importData(e.target.files[0]);}; inp.click(); };
-        document.getElementById('power-saving-btn').onclick = () => togglePowerSaving();
-        document.getElementById('wallpaper-ocean').onclick = () => changeWallpaper('ocean');
-        document.getElementById('wallpaper-forest').onclick = () => changeWallpaper('forest');
-        document.getElementById('wallpaper-sunset').onclick = () => changeWallpaper('sunset');
-        document.getElementById('wallpaper-night').onclick = () => changeWallpaper('night');
-        document.getElementById('wallpaper-rose').onclick = () => changeWallpaper('rose');
-        document.getElementById('wallpaper-mountain').onclick = () => changeWallpaper('mountain');
-        document.getElementById('wallpaper-default').onclick = () => changeWallpaper('default');
-    }, 50);
-}
-
-// ========== قائمة التطبيقات الكاملة (23 تطبيق) ==========
+// ========== قائمة التطبيقات الكاملة ==========
 const apps = [
-    { id: 'notes', name: '📝 مفكرة', icon: '📝', func: openNotes },
-    { id: 'calculator', name: '🔢 حاسبة', icon: '🔢', func: openCalculator },
-    { id: 'scientific', name: '📊 حاسبة علمية', icon: '📊', func: openScientific },
-    { id: 'files', name: '📁 ملفات', icon: '📁', func: openFiles },
-    { id: 'calendar', name: '📅 تقويم', icon: '📅', func: openCalendar },
-    { id: 'tasks', name: '✅ مهام', icon: '✅', func: openTasks },
-    { id: 'music', name: '🎵 مشغل موسيقى', icon: '🎵', func: openMusic },
-    { id: 'gallery', name: '🖼️ معرض صور', icon: '🖼️', func: openGallery },
-    { id: 'draw', name: '🎨 رسم', icon: '🎨', func: openDraw },
-    { id: 'alarm', name: '⏰ منبه', icon: '⏰', func: openAlarm },
-    { id: 'currency', name: '🧮 تحويل عملات', icon: '🧮', func: openCurrency },
-    { id: 'browser', name: '🌐 متصفح', icon: '🌐', func: openBrowser },
-    { id: 'games', name: '🎮 ألعاب', icon: '🎮', func: openGames },
-    { id: 'units', name: '🧮 محول وحدات', icon: '🧮', func: openUnitConverter },
-    { id: 'news', name: '📰 أخبار', icon: '📰', func: openNews },
-    { id: 'chat', name: '💬 دردشة', icon: '💬', func: openChat },
-    { id: 'analysis', name: '📊 تحليل بيانات', icon: '📊', func: openDataAnalysis },
-    { id: 'imageedit', name: '🎨 تعديل صور', icon: '🎨', func: openImageEditor },
-    { id: 'pdf', name: '📝 PDF قارئ', icon: '📝', func: openPDFReader },
-    { id: 'passwords', name: '🔐 مدير كلمات مرور', icon: '🔐', func: openPasswordManager },
-    { id: 'crypto', name: '📈 عملات رقمية', icon: '📈', func: openCrypto },
-    { id: 'maps', name: '🗺️ خرائط', icon: '🗺️', func: openMaps },
-    { id: 'settings', name: '⚙️ إعدادات', icon: '⚙️', func: openSettings }
+    { id:'notes', name:'📝 مفكرة', icon:'📝', func:openNotes },
+    { id:'calculator', name:'🔢 حاسبة', icon:'🔢', func:openCalculator },
+    { id:'scientific', name:'📊 حاسبة علمية', icon:'📊', func:openScientific },
+    { id:'files', name:'📁 ملفات', icon:'📁', func:openFiles },
+    { id:'calendar', name:'📅 تقويم', icon:'📅', func:openCalendar },
+    { id:'tasks', name:'✅ مهام', icon:'✅', func:openTasks },
+    { id:'music', name:'🎵 مشغل موسيقى', icon:'🎵', func:openMusic },
+    { id:'gallery', name:'🖼️ معرض صور', icon:'🖼️', func:openGallery },
+    { id:'draw', name:'🎨 رسم', icon:'🎨', func:openDraw },
+    { id:'alarm', name:'⏰ منبه', icon:'⏰', func:openAlarm },
+    { id:'currency', name:'🧮 تحويل عملات', icon:'🧮', func:openCurrency },
+    { id:'browser', name:'🌐 متصفح', icon:'🌐', func:openBrowser },
+    { id:'games', name:'🎮 ألعاب', icon:'🎮', func:openGames },
+    { id:'units', name:'🧮 محول وحدات', icon:'🧮', func:openUnitConverter },
+    { id:'news', name:'📰 أخبار', icon:'📰', func:openNews },
+    { id:'chat', name:'💬 دردشة', icon:'💬', func:openChat },
+    { id:'analysis', name:'📊 تحليل بيانات', icon:'📊', func:openDataAnalysis },
+    { id:'imageedit', name:'🎨 تعديل صور', icon:'🎨', func:openImageEditor },
+    { id:'pdf', name:'📝 PDF قارئ', icon:'📝', func:openPDFReader },
+    { id:'passwords', name:'🔐 مدير كلمات مرور', icon:'🔐', func:openPasswordManager },
+    { id:'crypto', name:'📈 عملات رقمية', icon:'📈', func:openCrypto },
+    { id:'maps', name:'🗺️ خرائط', icon:'🗺️', func:openMaps },
+    { id:'settings', name:'⚙️ إعدادات', icon:'⚙️', func:openSettings }
 ];
 
 const container = document.getElementById('desktopIcons');
@@ -612,8 +405,10 @@ document.getElementById('navBack').onclick = () => showNotification('◀ رجو�
 document.getElementById('navForward').onclick = () => showNotification('تقدم ▶', 'info');
 document.getElementById('navRefresh').onclick = () => location.reload();
 
-showNotification('✨ V10.0 Cloud OS جاهز - 23 تطبيق و15 ميزة جديدة', 'success');
-console.log('V10.0 loaded - 23 apps ready');
+// استعادة الأيقونات المزالة
+removedIcons.forEach(appId => { const icon = document.querySelector(`.desktop-icon[data-app="${appId}"]`); if(icon) icon.classList.add('removed'); });
+
+showNotification('✨ V10.5 Cloud OS جاهز - 23 تطبيق و25 ميزة مفعلة بالكامل', 'success');
 </script>
 </body>
 </html>
