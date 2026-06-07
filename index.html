@@ -1,209 +1,730 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl" lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML Pro Lab — شركة جميل الحطامي</title>
-
-<style>
-:root{
-  --black:#0b0b0b;
-  --dark:#1a1a1a;
-  --gold:#d4af37;
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Tahoma, Arial;
-  background:var(--black);
-  color:#fff;
-}
-
-header{
-  background:#000;
-  padding:15px;
-  text-align:center;
-  border-bottom:2px solid var(--gold);
-}
-
-header h1{
-  margin:0;
-  font-size:20px;
-  color:var(--gold);
-}
-
-header p{
-  margin:5px 0 0;
-  font-size:13px;
-  color:#ccc;
-}
-
-.toolbar{
-  background:var(--dark);
-  padding:8px;
-  text-align:center;
-  border-bottom:1px solid var(--gold);
-}
-
-button{
-  background:var(--gold);
-  border:none;
-  padding:7px 14px;
-  margin:3px;
-  cursor:pointer;
-  font-weight:bold;
-  border-radius:4px;
-}
-
-button:hover{
-  background:#ffd700;
-}
-
-.container{
-  display:flex;
-  height:calc(100vh - 140px);
-}
-
-.editor, .preview{
-  width:50%;
-  padding:10px;
-}
-
-textarea{
-  width:100%;
-  height:100%;
-  background:#111;
-  color:#fff;
-  border:1px solid var(--gold);
-  padding:10px;
-  font-family:Consolas, monospace;
-  font-size:14px;
-  resize:none;
-}
-
-iframe{
-  width:100%;
-  height:100%;
-  border:1px solid var(--gold);
-  background:#fff;
-}
-
-footer{
-  text-align:center;
-  padding:8px;
-  font-size:12px;
-  background:#000;
-  border-top:1px solid var(--gold);
-}
-
-@media(max-width:768px){
-  .container{
-    flex-direction:column;
-  }
-  .editor, .preview{
-    width:100%;
-    height:50%;
-  }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>V9 Cloud OS | التطبيق السحابي - النسخة الكاملة</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); overflow: hidden; height: 100vh; width: 100vw; }
+        body.light-mode { background: #f5f5f5; }
+        body.light-mode .taskbar { background: rgba(255,255,255,0.95); color: #333; }
+        body.light-mode .desktop-icon { background: rgba(255,255,255,0.95); color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        body.light-mode .desktop-icon .label { color: #333; }
+        body.light-mode .window { background: white; }
+        
+        .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 1000; border-top: 1px solid rgba(255,255,255,0.1); }
+        .taskbar-left { display: flex; gap: 12px; align-items: center; }
+        .start-menu, .theme-toggle, .nav-btn { background: rgba(255,255,255,0.15); padding: 8px 14px; border-radius: 30px; cursor: pointer; font-size: 14px; transition: all 0.2s; font-weight: 500; }
+        .start-menu:active, .theme-toggle:active, .nav-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.3); }
+        .taskbar-right { display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 500; }
+        
+        .desktop-icons { position: absolute; top: 20px; left: 20px; right: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 20px; z-index: 10; padding-bottom: 80px; overflow-y: auto; max-height: calc(100vh - 90px); }
+        .desktop-icons::-webkit-scrollbar { width: 3px; }
+        .desktop-icons::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .desktop-icons::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        
+        .desktop-icon { width: 85px; text-align: center; cursor: pointer; padding: 12px 8px; border-radius: 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); transition: all 0.2s; margin: 0 auto; }
+        .desktop-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+        .desktop-icon .icon { font-size: 44px; margin-bottom: 8px; }
+        .desktop-icon .label { color: white; font-size: 11px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        
+        .window { position: absolute; background: white; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 92%; max-width: 450px; min-height: 450px; max-height: 80vh; z-index: 100; display: flex; flex-direction: column; overflow: hidden; }
+        .window-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; border-radius: 28px 28px 0 0; color: white; cursor: grab; display: flex; justify-content: space-between; align-items: center; }
+        .window-header:active { cursor: grabbing; }
+        .window-title { font-weight: 600; font-size: 16px; }
+        .window-controls { display: flex; gap: 10px; }
+        .window-btn { cursor: pointer; background: rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+        .window-btn:active { transform: scale(0.9); }
+        .window-close { background: rgba(255,80,80,0.6); }
+        .window-content { padding: 20px; flex: 1; overflow-y: auto; }
+        
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; z-index: 3000; font-size: 14px; animation: slideDown 0.3s ease; max-width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        
+        @media (max-width: 768px) {
+            .desktop-icons { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; }
+            .desktop-icon { width: 70px; padding: 10px 5px; }
+            .desktop-icon .icon { font-size: 36px; }
+            .window { width: 95%; max-width: 95%; left: 2.5% !important; border-radius: 24px; }
+            .window-header { padding: 14px; border-radius: 24px 24px 0 0; }
+            .taskbar-left .start-menu, .taskbar-left .theme-toggle, .taskbar-left .nav-btn { padding: 6px 12px; font-size: 12px; }
+        }
+        @media (max-width: 480px) {
+            .desktop-icons { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .desktop-icon { max-width: 80px; }
+            .taskbar { height: 58px; }
+            .start-menu, .theme-toggle, .nav-btn { padding: 6px 10px; font-size: 11px; }
+        }
+        
+        button, .clickable { cursor: pointer; transition: transform 0.1s ease; }
+        button:active, .clickable:active { transform: scale(0.97); }
+        input, textarea, select { font-family: inherit; border: 1px solid #ddd; border-radius: 12px; padding: 12px; }
+        button { border: none; background: none; font-family: inherit; }
+    </style>
 </head>
-
 <body>
 
-<header>
-  <h1>HTML Pro Lab</h1>
-  <p>شركة جميل الحطامي تسويق و مبيعات للتسوق الاكتروني</p>
-</header>
-
-<div class="toolbar">
-  <button onclick="run()">تشغيل</button>
-  <button onclick="save()">حفظ</button>
-  <button onclick="download()">تحميل HTML</button>
-  <button onclick="resetEditor()">إعادة ضبط</button>
+<div class="taskbar">
+    <div class="taskbar-left">
+        <div class="start-menu clickable" id="startMenu">☁️ V9</div>
+        <div class="nav-btn clickable" id="navBack">◀</div>
+        <div class="nav-btn clickable" id="navForward">▶</div>
+        <div class="nav-btn clickable" id="navRefresh">🔄</div>
+        <div class="theme-toggle clickable" id="themeToggle">🌙</div>
+    </div>
+    <div class="taskbar-right">
+        <div id="batteryStatus">🔋 --%</div>
+        <div id="networkStatus">📶 Online</div>
+        <div id="clock"></div>
+    </div>
 </div>
 
-<div class="container">
-  <div class="editor">
-<textarea id="code"></textarea>
-  </div>
-
-  <div class="preview">
-    <iframe id="result"></iframe>
-  </div>
-</div>
-
-<footer>
-© 2026 — بيئة تطوير محلية بدون إنترنت
-</footer>
+<div class="desktop-icons" id="desktopIcons"></div>
+<div id="windowsContainer"></div>
 
 <script>
-const defaultCode = `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>مشروع تجريبي</title>
-<style>
-body{
-  font-family:Arial;
-  background:#f4f4f4;
-  padding:20px;
-}
-.card{
-  background:#000;
-  color:gold;
-  padding:20px;
-  border-radius:10px;
-}
-</style>
-</head>
-<body>
+// ============================================
+// V9 FULL OS - ALL APPS WORKING
+// ============================================
 
-<div class="card">
-<h2>مرحبًا أستاذ جميل 👋</h2>
-<p>هذه بيئة تطوير احترافية تعمل بدون إنترنت</p>
-</div>
+// تهيئة المتغيرات العامة
+let openWindows = [];
+let nextZIndex = 100;
+let windowCounter = 0;
 
-</body>
-</html>`;
-
-const editor = document.getElementById("code");
-const iframe = document.getElementById("result");
-
-// تحميل الكود المحفوظ
-editor.value = localStorage.getItem("html_code") || defaultCode;
-
-function run(){
-  iframe.srcdoc = editor.value;
+// ========== الإشعارات ==========
+function showNotification(msg, type = 'info') {
+    const n = document.createElement('div');
+    n.className = 'notification';
+    n.innerHTML = `${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'} ${msg}`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 2500);
 }
 
-function save(){
-  localStorage.setItem("html_code", editor.value);
-  alert("تم الحفظ محليًا ✅");
+// ========== الساعة والبطارية والشبكة ==========
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').innerHTML = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+if ('getBattery' in navigator) {
+    navigator.getBattery().then(b => {
+        const update = () => {
+            const lvl = Math.round(b.level * 100);
+            document.getElementById('batteryStatus').innerHTML = b.charging ? `⚡ ${lvl}%` : `🔋 ${lvl}%`;
+        };
+        update();
+        b.addEventListener('levelchange', update);
+        b.addEventListener('chargingchange', update);
+    });
 }
 
-function download(){
-  const blob = new Blob([editor.value], {type:"text/html"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "project.html";
-  a.click();
+function updateNetwork() {
+    document.getElementById('networkStatus').innerHTML = navigator.onLine ? '📶 Online' : '📡 Offline';
+}
+updateNetwork();
+window.addEventListener('online', updateNetwork);
+window.addEventListener('offline', updateNetwork);
+
+// ========== تبديل الوضع ==========
+document.getElementById('themeToggle').onclick = () => {
+    document.body.classList.toggle('light-mode');
+    document.getElementById('themeToggle').innerHTML = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    showNotification(document.body.classList.contains('light-mode') ? 'وضع النهار ☀️' : 'وضع الليل 🌙', 'success');
+};
+
+document.getElementById('startMenu').onclick = () => showNotification('☁️ V9 Cloud OS - 13 تطبيق جاهز', 'info');
+
+// ========== إدارة النوافذ ==========
+function createWindow(title, content, width = 400, height = 500) {
+    const winId = `win_${Date.now()}_${++windowCounter}`;
+    const left = 50 + (openWindows.length * 20);
+    const top = 80 + (openWindows.length * 15);
+    
+    const winHtml = `
+        <div id="${winId}" class="window" style="left:${left}px; top:${top}px; width:${width}px; min-height:${height}px; z-index:${nextZIndex++}">
+            <div class="window-header">
+                <div class="window-title">${title}</div>
+                <div class="window-controls">
+                    <div class="window-btn window-close">✕</div>
+                </div>
+            </div>
+            <div class="window-content" id="content-${winId}">
+                ${content}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', winHtml);
+    const winElement = document.getElementById(winId);
+    const closeBtn = winElement.querySelector('.window-close');
+    const header = winElement.querySelector('.window-header');
+    
+    closeBtn.onclick = () => {
+        winElement.remove();
+        openWindows = openWindows.filter(w => w !== winId);
+        showNotification('✅ تم إغلاق النافذة', 'info');
+    };
+    
+    // سحب النافذة
+    let isDragging = false, startX, startY, startLeft, startTop;
+    header.onmousedown = (e) => {
+        if (e.target.closest('.window-controls')) return;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = winElement.offsetLeft;
+        startTop = winElement.offsetTop;
+        winElement.style.zIndex = nextZIndex++;
+        document.onmousemove = (me) => {
+            if (!isDragging) return;
+            const dx = me.clientX - startX;
+            const dy = me.clientY - startY;
+            winElement.style.left = Math.max(0, Math.min(startLeft + dx, window.innerWidth - winElement.offsetWidth)) + 'px';
+            winElement.style.top = Math.max(0, Math.min(startTop + dy, window.innerHeight - winElement.offsetHeight - 65)) + 'px';
+        };
+        document.onmouseup = () => { isDragging = false; document.onmousemove = null; document.onmouseup = null; };
+    };
+    
+    // للجوال
+    header.ontouchstart = (e) => {
+        if (e.target.closest('.window-controls')) return;
+        const touch = e.touches[0];
+        isDragging = true;
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startLeft = winElement.offsetLeft;
+        startTop = winElement.offsetTop;
+        winElement.style.zIndex = nextZIndex++;
+    };
+    document.ontouchmove = (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        winElement.style.left = Math.max(0, Math.min(startLeft + dx, window.innerWidth - winElement.offsetWidth)) + 'px';
+        winElement.style.top = Math.max(0, Math.min(startTop + dy, window.innerHeight - winElement.offsetHeight - 65)) + 'px';
+    };
+    document.ontouchend = () => { isDragging = false; };
+    
+    openWindows.push(winId);
+    return winId;
 }
 
-function resetEditor(){
-  if(confirm("هل تريد إعادة الضبط؟")){
-    editor.value = defaultCode;
-    run();
-  }
+// ========== التطبيقات (كلها شغالة) ==========
+
+// 1. مفكرة
+function openNotes() {
+    const saved = localStorage.getItem('notes_content') || '';
+    const content = `
+        <textarea id="notes-textarea" style="width:100%; height:250px; border:1px solid #ddd; border-radius:16px; padding:12px; font-size:14px;">${saved.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        <button id="notes-save" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:16px; font-size:16px;">💾 حفظ</button>
+    `;
+    createWindow('📝 مفكرة', content, 400, 480);
+    setTimeout(() => {
+        document.getElementById('notes-save').onclick = () => {
+            const val = document.getElementById('notes-textarea').value;
+            localStorage.setItem('notes_content', val);
+            showNotification('✅ تم حفظ الملاحظات', 'success');
+        };
+    }, 50);
 }
 
-// تشغيل مباشر أثناء الكتابة
-editor.addEventListener("input", run);
+// 2. حاسبة
+function openCalculator() {
+    const content = `
+        <input id="calc-display" type="text" readonly value="0" style="width:100%; padding:15px; font-size:32px; border:1px solid #ddd; border-radius:16px; margin-bottom:12px; text-align:left;">
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+            ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(b => `<button class="calc-btn" data-val="${b}" style="padding:14px; border:1px solid #ddd; border-radius:12px; background:#f5f5f5; font-size:18px;">${b}</button>`).join('')}
+            <button id="calc-clear" style="padding:14px; background:#dc3545; color:white; border:none; border-radius:12px; font-size:18px;">C</button>
+        </div>
+    `;
+    createWindow('🔢 حاسبة', content, 380, 480);
+    setTimeout(() => {
+        let value = '0', prev = 0, operator = null, waiting = false;
+        const display = document.getElementById('calc-display');
+        const updateDisplay = () => { display.value = value; };
+        const calculate = () => {
+            const current = parseFloat(value);
+            let result = 0;
+            switch(operator) {
+                case '+': result = prev + current; break;
+                case '-': result = prev - current; break;
+                case '*': result = prev * current; break;
+                case '/': result = current === 0 ? 'خطأ' : prev / current; break;
+                default: return;
+            }
+            value = result.toString();
+            if (value === 'Infinity' || value === 'NaN') value = '0';
+            updateDisplay();
+        };
+        document.querySelectorAll('.calc-btn').forEach(btn => {
+            btn.onclick = () => {
+                const val = btn.getAttribute('data-val');
+                if (val >= '0' && val <= '9') {
+                    if (waiting) { value = val; waiting = false; }
+                    else { value = value === '0' ? val : value + val; }
+                    updateDisplay();
+                } else if (val === '.') {
+                    if (!value.includes('.')) value += '.';
+                    updateDisplay();
+                } else if (val === '+' || val === '-' || val === '*' || val === '/') {
+                    if (operator && !waiting) calculate();
+                    prev = parseFloat(value);
+                    operator = val;
+                    waiting = true;
+                } else if (val === '=') {
+                    if (operator && !waiting) calculate();
+                    operator = null;
+                    waiting = true;
+                }
+            };
+        });
+        document.getElementById('calc-clear').onclick = () => { value = '0'; prev = 0; operator = null; waiting = false; updateDisplay(); };
+    }, 50);
+}
 
-// تشغيل أولي
-run();
+// 3. حاسبة علمية
+function openScientific() {
+    const content = `
+        <input id="sci-display" type="text" readonly value="0" style="width:100%; padding:15px; font-size:28px; border:1px solid #ddd; border-radius:16px; margin-bottom:12px;">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;">
+            ${['sin','cos','tan','sqrt','log','ln','pow2'].map(f => `<button class="sci-func" data-func="${f}" style="padding:12px; background:#667eea; color:white; border:none; border-radius:12px;">${f}</button>`).join('')}
+            <button id="sci-clear" style="padding:12px; background:#dc3545; color:white; border:none; border-radius:12px;">C</button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+            ${['7','8','9','4','5','6','1','2','3','0','.','='].map(d => `<button class="sci-digit" data-digit="${d}" style="padding:14px; border:1px solid #ddd; border-radius:12px; background:#f5f5f5;">${d}</button>`).join('')}
+        </div>
+    `;
+    createWindow('📊 حاسبة علمية', content, 380, 520);
+    setTimeout(() => {
+        let sciValue = '0';
+        const display = document.getElementById('sci-display');
+        const update = () => { display.value = sciValue; };
+        const sciFunc = (fn) => {
+            let num = parseFloat(sciValue);
+            switch(fn) {
+                case 'sin': sciValue = Math.sin(num).toString(); break;
+                case 'cos': sciValue = Math.cos(num).toString(); break;
+                case 'tan': sciValue = Math.tan(num).toString(); break;
+                case 'sqrt': sciValue = num >= 0 ? Math.sqrt(num).toString() : 'خطأ'; break;
+                case 'log': sciValue = Math.log10(num).toString(); break;
+                case 'ln': sciValue = Math.log(num).toString(); break;
+                case 'pow2': sciValue = Math.pow(num, 2).toString(); break;
+                default: return;
+            }
+            if (sciValue === 'NaN' || sciValue === 'Infinity') sciValue = '0';
+            update();
+        };
+        document.querySelectorAll('.sci-func').forEach(btn => {
+            btn.onclick = () => sciFunc(btn.getAttribute('data-func'));
+        });
+        document.querySelectorAll('.sci-digit').forEach(btn => {
+            btn.onclick = () => {
+                const d = btn.getAttribute('data-digit');
+                if (d === '=') {
+                    try { sciValue = eval(sciValue).toString(); } catch(e) { sciValue = '0'; }
+                    update();
+                } else {
+                    sciValue = sciValue === '0' ? d : sciValue + d;
+                    update();
+                }
+            };
+        });
+        document.getElementById('sci-clear').onclick = () => { sciValue = '0'; update(); };
+    }, 50);
+}
+
+// 4. ملفات
+function openFiles() {
+    let files = JSON.parse(localStorage.getItem('user_files') || '[]');
+    const renderList = () => {
+        const container = document.getElementById('files-list');
+        if (!container) return;
+        container.innerHTML = files.length === 0 ? '<p style="text-align:center; color:#999;">لا توجد ملفات</p>' : files.map((f,i) => `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><span>📄 ${f.name}</span><button class="delete-file" data-index="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join('');
+        document.querySelectorAll('.delete-file').forEach(btn => {
+            btn.onclick = () => {
+                const idx = parseInt(btn.getAttribute('data-index'));
+                files.splice(idx, 1);
+                localStorage.setItem('user_files', JSON.stringify(files));
+                renderList();
+                showNotification('🗑️ تم حذف الملف', 'info');
+            };
+        });
+    };
+    const content = `
+        <button id="add-file" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ ملف جديد</button>
+        <div id="files-list"></div>
+    `;
+    createWindow('📁 ملفات', content, 400, 450);
+    setTimeout(() => {
+        renderList();
+        document.getElementById('add-file').onclick = () => {
+            const name = prompt('اسم الملف:');
+            if (name) {
+                files.push({ name, created: new Date() });
+                localStorage.setItem('user_files', JSON.stringify(files));
+                renderList();
+                showNotification('✅ تم إنشاء الملف', 'success');
+            }
+        };
+    }, 50);
+}
+
+// 5. تقويم
+function openCalendar() {
+    const today = new Date();
+    const days = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+    const dates = Array.from({length: 35}, (_,i) => i < 31 ? i+1 : '');
+    const content = `
+        <div style="text-align:center;">
+            <h3>${today.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}</h3>
+            <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:15px;">
+                ${days.map(d => `<div style="font-weight:bold; text-align:center;">${d}</div>`).join('')}
+                ${dates.map(d => `<div style="padding:10px; text-align:center; background:#f0f0f0; border-radius:12px;">${d}</div>`).join('')}
+            </div>
+        </div>
+    `;
+    createWindow('📅 تقويم', content, 400, 450);
+}
+
+// 6. مهام
+function openTasks() {
+    let tasks = JSON.parse(localStorage.getItem('tasks_v9') || '[]');
+    const renderList = () => {
+        const container = document.getElementById('tasks-list');
+        if (!container) return;
+        container.innerHTML = tasks.length === 0 ? '<p style="text-align:center; color:#999;">لا توجد مهام</p>' : tasks.map((t,i) => `<div style="display:flex; align-items:center; gap:10px; padding:12px; border-bottom:1px solid #eee;"><input type="checkbox" class="task-check" data-index="${i}" ${t.completed ? 'checked' : ''} style="width:20px; height:20px;"><span style="flex:1; ${t.completed ? 'text-decoration:line-through; color:#999;' : ''}">${t.text}</span><button class="delete-task" data-index="${i}" style="background:#dc3545; color:white; border:none; padding:5px 12px; border-radius:8px;">🗑️</button></div>`).join('');
+        document.querySelectorAll('.task-check').forEach(cb => {
+            cb.onchange = () => {
+                const idx = parseInt(cb.getAttribute('data-index'));
+                tasks[idx].completed = cb.checked;
+                localStorage.setItem('tasks_v9', JSON.stringify(tasks));
+                renderList();
+            };
+        });
+        document.querySelectorAll('.delete-task').forEach(btn => {
+            btn.onclick = () => {
+                const idx = parseInt(btn.getAttribute('data-index'));
+                tasks.splice(idx, 1);
+                localStorage.setItem('tasks_v9', JSON.stringify(tasks));
+                renderList();
+                showNotification('🗑️ تم حذف المهمة', 'info');
+            };
+        });
+    };
+    const content = `
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <input id="new-task-input" placeholder="مهمة جديدة..." style="flex:1; padding:12px; border:1px solid #ddd; border-radius:12px;">
+            <button id="add-task" style="padding:12px 20px; background:#28a745; color:white; border:none; border-radius:12px;">➕</button>
+        </div>
+        <div id="tasks-list"></div>
+    `;
+    createWindow('✅ مهام', content, 400, 480);
+    setTimeout(() => {
+        renderList();
+        document.getElementById('add-task').onclick = () => {
+            const input = document.getElementById('new-task-input');
+            if (input.value.trim()) {
+                tasks.push({ text: input.value, completed: false });
+                localStorage.setItem('tasks_v9', JSON.stringify(tasks));
+                input.value = '';
+                renderList();
+                showNotification('✅ تم إضافة المهمة', 'success');
+            }
+        };
+    }, 50);
+}
+
+// 7. مشغل موسيقى
+function openMusic() {
+    const content = `
+        <div style="text-align:center;">
+            <div style="font-size:64px;">🎵</div>
+            <audio id="music-audio" controls style="width:100%; margin:15px 0;"></audio>
+            <input type="file" accept="audio/*" id="music-file" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:12px;">
+            <div id="now-playing" style="margin-top:10px; color:#999;"></div>
+        </div>
+    `;
+    createWindow('🎵 مشغل موسيقى', content, 400, 480);
+    setTimeout(() => {
+        document.getElementById('music-file').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                document.getElementById('music-audio').src = url;
+                document.getElementById('now-playing').innerHTML = `🎶 الآن: ${file.name}`;
+                showNotification('✅ تم تحميل الأغنية', 'success');
+            }
+        };
+    }, 50);
+}
+
+// 8. معرض صور
+function openGallery() {
+    let images = JSON.parse(localStorage.getItem('gallery') || '[]');
+    const renderGallery = () => {
+        const container = document.getElementById('gallery-grid');
+        if (!container) return;
+        container.innerHTML = images.length === 0 ? '<p style="text-align:center; color:#999;">لا توجد صور</p>' : images.map((img,i) => `<div class="gallery-img" data-index="${i}" style="background:#f0f0f0; border-radius:16px; padding:15px; text-align:center; cursor:pointer;"><div style="font-size:48px;">🖼️</div><div style="font-size:12px; margin-top:5px;">صورة ${i+1}</div></div>`).join('');
+        document.querySelectorAll('.gallery-img').forEach(el => {
+            el.onclick = () => window.open(images[parseInt(el.getAttribute('data-index'))]);
+        });
+    };
+    const content = `
+        <button id="add-image" style="width:100%; padding:14px; background:#28a745; color:white; border:none; border-radius:16px; margin-bottom:12px;">➕ إضافة صورة</button>
+        <div id="gallery-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:10px;"></div>
+    `;
+    createWindow('🖼️ معرض صور', content, 400, 480);
+    setTimeout(() => {
+        renderGallery();
+        document.getElementById('add-image').onclick = () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        images.push(ev.target.result);
+                        localStorage.setItem('gallery', JSON.stringify(images));
+                        renderGallery();
+                        showNotification('✅ تم إضافة الصورة', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        };
+    }, 50);
+}
+
+// 9. رسم
+function openDraw() {
+    const content = `
+        <canvas id="draw-canvas" width="350" height="280" style="width:100%; height:auto; border:1px solid #ddd; border-radius:16px; background:white;"></canvas>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+            <button id="draw-clear" style="flex:1; padding:12px; background:#dc3545; color:white; border:none; border-radius:12px;">🗑️ مسح</button>
+            <button id="draw-save" style="flex:1; padding:12px; background:#28a745; color:white; border:none; border-radius:12px;">💾 حفظ</button>
+        </div>
+    `;
+    createWindow('🎨 رسم', content, 400, 460);
+    setTimeout(() => {
+        const canvas = document.getElementById('draw-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 350; canvas.height = 280;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        let drawing = false;
+        const start = (e) => {
+            drawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.clientX || e.touches[0].clientX) - rect.left) * (canvas.width / rect.width);
+            const y = ((e.clientY || e.touches[0].clientY) - rect.top) * (canvas.height / rect.height);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        };
+        const draw = (e) => {
+            if (!drawing) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.clientX || e.touches[0].clientX) - rect.left) * (canvas.width / rect.width);
+            const y = ((e.clientY || e.touches[0].clientY) - rect.top) * (canvas.height / rect.height);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        };
+        const stop = () => { drawing = false; ctx.beginPath(); };
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stop);
+        canvas.addEventListener('touchstart', start);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stop);
+        document.getElementById('draw-clear').onclick = () => {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        };
+        document.getElementById('draw-save').onclick = () => {
+            const link = document.createElement('a');
+            link.download = `drawing_${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showNotification('✅ تم حفظ الرسم', 'success');
+        };
+    }, 50);
+}
+
+// 10. منبه
+let alarmTimeout = null;
+function openAlarm() {
+    const content = `
+        <div style="text-align:center;">
+            <div style="font-size:64px;">⏰</div>
+            <input type="time" id="alarm-time" style="width:100%; padding:15px; margin:15px 0; border:1px solid #ddd; border-radius:12px; font-size:18px;">
+            <button id="set-alarm" style="width:100%; padding:15px; background:#28a745; color:white; border:none; border-radius:12px; font-size:16px;">✅ ضبط المنبه</button>
+        </div>
+    `;
+    createWindow('⏰ منبه', content, 380, 380);
+    setTimeout(() => {
+        document.getElementById('set-alarm').onclick = () => {
+            const time = document.getElementById('alarm-time').value;
+            if (time) {
+                const now = new Date();
+                const [h, m] = time.split(':');
+                const alarm = new Date();
+                alarm.setHours(parseInt(h), parseInt(m), 0);
+                if (alarm <= now) alarm.setDate(alarm.getDate() + 1);
+                const diff = alarm - now;
+                if (alarmTimeout) clearTimeout(alarmTimeout);
+                alarmTimeout = setTimeout(() => {
+                    alert('⏰ وقت المنبه!');
+                    showNotification('🔔 وقت المنبه!', 'warning');
+                }, diff);
+                showNotification(`✅ تم ضبط المنبه على ${time}`, 'success');
+            }
+        };
+    }, 50);
+}
+
+// 11. تحويل عملات
+function openCurrency() {
+    const rates = { USD: 1, EUR: 0.92, GBP: 0.78, SAR: 3.75, EGP: 48.5, AED: 3.67, JOD: 0.71, KWD: 0.31 };
+    const content = `
+        <div>
+            <input type="number" id="curr-amount" placeholder="المبلغ" value="1" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; margin-bottom:10px;">
+            <div style="display:flex; gap:10px;">
+                <select id="curr-from" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:12px;">${Object.keys(rates).map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+                <span style="font-size:20px;">→</span>
+                <select id="curr-to" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:12px;">${Object.keys(rates).map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+            </div>
+            <div id="curr-result" style="margin-top:15px; padding:15px; background:#f0f0f0; border-radius:12px; text-align:center; font-size:18px; font-weight:bold;">1 USD</div>
+        </div>
+    `;
+    createWindow('🧮 تحويل عملات', content, 380, 380);
+    setTimeout(() => {
+        const convert = () => {
+            const amt = parseFloat(document.getElementById('curr-amount').value) || 0;
+            const from = document.getElementById('curr-from').value;
+            const to = document.getElementById('curr-to').value;
+            const result = (amt / rates[from]) * rates[to];
+            document.getElementById('curr-result').innerHTML = `${result.toFixed(2)} ${to}`;
+        };
+        document.getElementById('curr-amount').oninput = convert;
+        document.getElementById('curr-from').onchange = convert;
+        document.getElementById('curr-to').onchange = convert;
+        convert();
+    }, 50);
+}
+
+// 12. متصفح
+function openBrowser() {
+    const content = `
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button id="browser-back" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">◀</button>
+            <button id="browser-forward" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">▶</button>
+            <button id="browser-refresh" style="padding:10px; background:#667eea; color:white; border:none; border-radius:12px;">🔄</button>
+        </div>
+        <input type="text" id="browser-url" placeholder="https://google.com" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; margin-bottom:12px;">
+        <button id="browser-go" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:12px; margin-bottom:12px;">🔍 بحث</button>
+        <iframe id="browser-frame" style="width:100%; height:280px; border:1px solid #ddd; border-radius:12px;"></iframe>
+    `;
+    createWindow('🌐 متصفح', content, 420, 520);
+    setTimeout(() => {
+        const frame = document.getElementById('browser-frame');
+        document.getElementById('browser-go').onclick = () => {
+            let url = document.getElementById('browser-url').value;
+            frame.src = url.startsWith('http') ? url : 'https://' + url;
+        };
+        document.getElementById('browser-back').onclick = () => { if (frame.contentWindow) frame.contentWindow.history.back(); };
+        document.getElementById('browser-forward').onclick = () => { if (frame.contentWindow) frame.contentWindow.history.forward(); };
+        document.getElementById('browser-refresh').onclick = () => { if (frame.contentWindow) frame.contentWindow.location.reload(); };
+    }, 50);
+}
+
+// 13. إعدادات
+function openSettings() {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        total += (key.length + (localStorage.getItem(key) || '').length) * 2;
+    }
+    const content = `
+        <div>
+            <div style="margin:15px 0;">⚙️ إعدادات V9.0</div>
+            <div style="margin:15px 0;">💾 التخزين: ${(total / 1048576).toFixed(2)} MB</div>
+            <div style="margin:15px 0;">🪟 النوافذ المفتوحة: ${openWindows.length}</div>
+            <div style="margin:15px 0;">🎨 الوضع: ${document.body.classList.contains('light-mode') ? 'نهار ☀️' : 'ليل 🌙'}</div>
+            <button id="settings-clear" style="width:100%; padding:14px; background:#dc3545; color:white; border:none; border-radius:16px; margin-top:15px;">🗑️ مسح جميع البيانات</button>
+            <button id="settings-close" style="width:100%; padding:14px; background:#667eea; color:white; border:none; border-radius:16px; margin-top:10px;">❌ إغلاق جميع النوافذ</button>
+        </div>
+    `;
+    createWindow('⚙️ إعدادات', content, 380, 450);
+    setTimeout(() => {
+        document.getElementById('settings-clear').onclick = () => {
+            if (confirm('مسح جميع البيانات؟')) {
+                localStorage.clear();
+                showNotification('✅ تم مسح البيانات', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        };
+        document.getElementById('settings-close').onclick = () => {
+            document.querySelectorAll('.window').forEach(w => w.remove());
+            openWindows = [];
+            showNotification('✅ تم إغلاق جميع النوافذ', 'success');
+        };
+    }, 50);
+}
+
+// ========== تحميل أيقونات سطح المكتب ==========
+const apps = [
+    { id: 'notes', name: '📝 مفكرة', icon: '📝', func: openNotes },
+    { id: 'calculator', name: '🔢 حاسبة', icon: '🔢', func: openCalculator },
+    { id: 'scientific', name: '📊 حاسبة علمية', icon: '📊', func: openScientific },
+    { id: 'files', name: '📁 ملفات', icon: '📁', func: openFiles },
+    { id: 'calendar', name: '📅 تقويم', icon: '📅', func: openCalendar },
+    { id: 'tasks', name: '✅ مهام', icon: '✅', func: openTasks },
+    { id: 'music', name: '🎵 مشغل موسيقى', icon: '🎵', func: openMusic },
+    { id: 'gallery', name: '🖼️ معرض صور', icon: '🖼️', func: openGallery },
+    { id: 'draw', name: '🎨 رسم', icon: '🎨', func: openDraw },
+    { id: 'alarm', name: '⏰ منبه', icon: '⏰', func: openAlarm },
+    { id: 'currency', name: '🧮 تحويل عملات', icon: '🧮', func: openCurrency },
+    { id: 'browser', name: '🌐 متصفح', icon: '🌐', func: openBrowser },
+    { id: 'settings', name: '⚙️ إعدادات', icon: '⚙️', func: openSettings }
+];
+
+const container = document.getElementById('desktopIcons');
+container.innerHTML = apps.map(app => `
+    <div class="desktop-icon" data-app="${app.id}">
+        <div class="icon">${app.icon}</div>
+        <div class="label">${app.name}</div>
+    </div>
+`).join('');
+
+document.querySelectorAll('.desktop-icon').forEach(icon => {
+    icon.onclick = () => {
+        const appId = icon.getAttribute('data-app');
+        const app = apps.find(a => a.id === appId);
+        if (app && app.func) app.func();
+        else showNotification(`جاري فتح ${appId}...`, 'info');
+    };
+});
+
+// أزرار التنقل
+document.getElementById('navBack').onclick = () => showNotification('◀ رجوع', 'info');
+document.getElementById('navForward').onclick = () => showNotification('تقدم ▶', 'info');
+document.getElementById('navRefresh').onclick = () => location.reload();
+
+showNotification('✨ V9 Cloud OS جاهز - جميع التطبيقات تعمل', 'success');
 </script>
-
 </body>
 </html>
