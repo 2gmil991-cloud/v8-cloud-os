@@ -161,7 +161,21 @@
 
     async function loadProducts() {
         try {
-            const data = await callSupabase("products?select=*&order=created_at.desc", { method: "GET" });
+            let data = await callSupabase("products?select=*&order=created_at.desc", { method: "GET" });
+            if (data.length === 0) {
+                console.log("الجدول فارغ، جاري إضافة منتجات تجريبية...");
+                const sampleProducts = [
+                    { name: "هاتف ذكي X10", price: 1299.99, stock: 10 },
+                    { name: "سماعات لاسلكية Pro", price: 249.99, stock: 25 },
+                    { name: "حقيبة ظهر عصرية", price: 189.99, stock: 15 },
+                    { name: "ساعة ذكية Sports", price: 599.99, stock: 8 },
+                    { name: "شاحن سريع 65W", price: 89.99, stock: 50 }
+                ];
+                for (let p of sampleProducts) {
+                    await callSupabase("products", { method: "POST", body: JSON.stringify(p) });
+                }
+                data = await callSupabase("products?select=*&order=created_at.desc", { method: "GET" });
+            }
             productsList = data;
             renderProducts("allProducts", data);
             renderProducts("recentProducts", data.slice(0,4));
@@ -294,4 +308,4 @@
     updateUI(); renderCart();
 </script>
 </body>
-                </html>
+    </html>
